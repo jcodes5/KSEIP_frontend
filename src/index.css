@@ -1,0 +1,375 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================================
+   Design System Variables & Global Styles
+   ============================================================================ */
+
+:root {
+  color: #173404;
+  background: #f0f4f0;
+  font-family: 'Inter', sans-serif;
+  
+  /* Color Palette */
+  --color-leaf: #1e5631;
+  --color-leaf-dark: #0f3820;
+  --color-leaf-light: #2d8a3f;
+  --color-ministry: #1A6B3C;
+  --color-accent: #28a745;
+  --color-warning: #ffc107;
+  --color-danger: #dc3545;
+  --color-info: #17a2b8;
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #1e5631 0%, #28a745 100%);
+  --gradient-accent: linear-gradient(135deg, #28a745 0%, #1A6B3C 100%);
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  
+  /* Transitions */
+  --transition-fast: all 0.2s ease-in-out;
+  --transition-base: all 0.3s ease-in-out;
+  --transition-slow: all 0.5s ease-in-out;
+}
+
+/* ============================================================================
+   Typography
+   ============================================================================ */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+h5 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+h6 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* ============================================================================
+   Base Elements
+   ============================================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  min-width: 100%;
+  min-height: 100vh;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+button,
+select {
+  font: inherit;
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--color-ministry);
+  text-decoration: none;
+  transition: var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-leaf-light);
+}
+
+/* ============================================================================
+   Component Styles
+   ============================================================================ */
+
+/* Cards & Panels */
+.shadow-panel {
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-base);
+}
+
+.shadow-panel:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: var(--transition-base);
+  border: none;
+  gap: 0.5rem;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary {
+  background-color: var(--color-ministry);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-leaf-dark);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--color-ministry);
+  border: 2px solid var(--color-ministry);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-ministry);
+  color: white;
+}
+
+.btn-danger {
+  background-color: var(--color-danger);
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+}
+
+/* Forms */
+input,
+select,
+textarea {
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  transition: var(--transition-fast);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-ministry);
+  box-shadow: 0 0 0 3px rgba(26, 107, 60, 0.1);
+}
+
+/* Badges & Labels */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.badge-success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.badge-warning {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.badge-danger {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.badge-info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+/* ============================================================================
+   Utility Classes
+   ============================================================================ */
+
+.gradient-primary {
+  background: var(--gradient-primary);
+}
+
+.gradient-accent {
+  background: var(--gradient-accent);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #1e5631 0%, #28a745 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.section-spacing {
+  padding: 3rem 0;
+}
+
+@media (max-width: 768px) {
+  .section-spacing {
+    padding: 2rem 0;
+  }
+  
+  h1 {
+    font-size: 2rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+}
+
+/* ============================================================================
+   Chart & Graph Styles
+   ============================================================================ */
+
+.recharts-responsive-container {
+  min-width: 0;
+}
+
+.recharts-surface {
+  font-family: 'Inter', sans-serif;
+}
+
+/* ============================================================================
+   Map Styles
+   ============================================================================ */
+
+.leaflet-container {
+  font: inherit;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  color: var(--color-ministry);
+  font-weight: 600;
+}
+
+.leaflet-control-zoom-in:hover,
+.leaflet-control-zoom-out:hover {
+  background-color: var(--color-ministry);
+  color: white;
+}
+
+/* ============================================================================
+   Print Styles
+   ============================================================================ */
+
+@media print {
+  nav,
+  button,
+  select {
+    display: none !important;
+  }
+  
+  body {
+    background: white;
+  }
+  
+  .shadow-panel {
+    box-shadow: none;
+    border: 1px solid #e5e7eb;
+  }
+}
+
+/* ============================================================================
+   Animations
+   ============================================================================ */
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-in-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* ============================================================================
+   Responsive Design Utilities
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .hidden-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .hidden-desktop {
+    display: none !important;
+  }
+}
