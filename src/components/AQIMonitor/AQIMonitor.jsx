@@ -10,7 +10,6 @@ import {
   XAxis,
   YAxis
 } from "recharts";
-import { getAqiHistory, getCurrentAqi } from "../../services/apiClient.js";
 import { EPA_AQI_BANDS, formatDateTime, getAqiBand, isStale } from "../../services/aqiScale.js";
 
 const LOCATIONS = [
@@ -36,7 +35,7 @@ function ErrorPanel({ error, onRetry }) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-semibold">{error?.code || "AQI_UNAVAILABLE"}</p>
-          <p className="mt-1 text-sm">{error?.message || "AQI data is unavailable."}</p>
+          <p className="mt-1 text-sm">{error?.message || "AQI data is unavailable, please reload or try again."}</p>
         </div>
         <button
           className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-red-700 px-4 text-sm font-semibold text-white hover:bg-red-800 transition-colors"
@@ -66,28 +65,28 @@ function PollutantCard({ label, unit, value, icon: Icon }) {
   );
 }
 
-function AQIGauge({ value, band, loading }) {
-  const percentage = Math.min((value / 300) * 100, 100) || 0;
+// function AQIGauge({ value, band, loading }) {
+//   const percentage = Math.min((value / 300) * 100, 100) || 0;
   
-  return (
-    <div className="space-y-3">
-      <div className="relative h-3 w-full overflow-hidden rounded-full bg-gray-200">
-        <div
-          className="h-full transition-all duration-1000"
-          style={{ width: `${percentage}%`, backgroundColor: band.color }}
-        />
-      </div>
-      <div className="grid grid-cols-6 gap-1 text-xs text-slate-500">
-        <div>0</div>
-        <div className="text-center">50</div>
-        <div className="text-center">100</div>
-        <div className="text-center">150</div>
-        <div className="text-center">200</div>
-        <div className="text-right">300+</div>
-      </div>
-    </div>
-  );
-}
+//   return (
+//     <div className="space-y-3">
+//       <div className="relative h-3 w-full overflow-hidden rounded-full bg-gray-200">
+//         <div
+//           className="h-full transition-all duration-1000"
+//           style={{ width: `${percentage}%`, backgroundColor: band.color }}
+//         />
+//       </div>
+//       <div className="grid grid-cols-6 gap-1 text-xs text-slate-500">
+//         <div>0</div>
+//         <div className="text-center">50</div>
+//         <div className="text-center">100</div>
+//         <div className="text-center">150</div>
+//         <div className="text-center">200</div>
+//         <div className="text-right">300+</div>
+//       </div>
+//     </div>
+//   );
+// }
 
 function TrendIndicator({ current, previous }) {
   if (!current || !previous) return null;
@@ -108,20 +107,20 @@ function LocationInfo({ location, aqi, band, currentData, loading }) {
   const locationName = currentData?.location || LOCATIONS.find((item) => item.id === location)?.label;
   
   return (
-    <div className="space-y-4 rounded-lg p-4 sm:p-6" style={{ backgroundColor: band.color, color: band.textColor }}>
+    <div className="space-y-4 rounded-lg p-4 sm:p-6 min-w-0" style={{ backgroundColor: band.color, color: band.textColor }}>
       {/* Header */}
-      <div>
+      <div className="min-w-0">
         <p className="text-sm font-semibold opacity-90">{locationName || "Air Quality"}</p>
-        <div className="mt-3 flex items-baseline gap-2">
-          <p className="text-6xl font-black leading-none">{loading && !currentData ? "--" : aqi ?? "--"}</p>
-          <p className="text-xl font-bold opacity-85">{band.category}</p>
+        <div className="mt-3 flex items-baseline gap-2 flex-wrap">
+          <p className="text-5xl sm:text-6xl font-black leading-none break-words">{loading && !currentData ? "--" : aqi ?? "--"}</p>
+          <p className="text-lg sm:text-xl font-bold opacity-85 flex-shrink-0">{band.category}</p>
         </div>
       </div>
 
       {/* Gauge */}
-      <div className="opacity-90">
+      {/* <div className="opacity-90">
         <AQIGauge value={aqi} band={band} loading={loading} />
-      </div>
+      </div> */}
 
       {/* Key Info */}
       <div className="space-y-2 border-t pt-4 opacity-85">
@@ -176,23 +175,23 @@ export default function AQIMonitor({
   const firstAqi = chartData.length > 0 ? chartData[0].aqi : null;
 
   return (
-    <section className="rounded-lg border border-ministry-100 bg-white p-4 shadow-panel sm:p-5 space-y-4" id="aqi">
+    <section className="rounded-lg border border-ministry-100 bg-white p-2 sm:p-3 md:p-4 shadow-panel space-y-3 sm:space-y-4" id="aqi">
       {/* Header */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="w-full">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-leaf-600">AQI Monitor</p>
-          <h1 className="mt-2 text-2xl font-bold text-slate-950 sm:text-3xl">Kogi Air Quality</h1>
-          <p className="mt-1 text-sm text-slate-600">Real-time air quality monitoring for Kogi State</p>
+          <h1 className="mt-1 text-xl sm:text-2xl md:text-3xl font-bold text-slate-950">Kogi Air Quality</h1>
+          <p className="mt-1 text-xs sm:text-sm text-slate-600">Real-time air quality monitoring for Kogi State</p>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-start sm:items-center">
           {stale && current ? (
-            <span className="inline-flex h-10 items-center gap-2 rounded-md border border-yellow-300 bg-yellow-100 px-3 text-sm font-semibold text-yellow-900">
-              <AlertTriangle size={16} />
-              Stale data
+            <span className="inline-flex h-9 sm:h-10 items-center gap-2 rounded-md border border-yellow-300 bg-yellow-100 px-2 sm:px-3 text-xs sm:text-sm font-semibold text-yellow-900">
+              <AlertTriangle size={14} />
+              <span>Stale data</span>
             </span>
           ) : null}
           <select
-            className="h-10 rounded-md border border-ministry-100 bg-white px-3 text-sm font-semibold text-slate-800 outline-none focus:border-leaf-600 focus:ring-2 focus:ring-leaf-100 transition-colors"
+            className="h-9 sm:h-10 w-full sm:w-auto rounded-md border border-ministry-100 bg-white px-2 sm:px-3 text-xs sm:text-sm font-semibold text-slate-800 outline-none focus:border-leaf-600 focus:ring-2 focus:ring-leaf-100 transition-colors"
             onChange={(event) => onLocationChange(event.target.value)}
             value={location}
           >
@@ -210,26 +209,28 @@ export default function AQIMonitor({
       {!error ? (
         <>
           {/* Main Grid */}
-          <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-[380px_1fr]">
+          <div className="grid gap-3 sm:gap-4 w-full">
             {/* Left: AQI Display */}
-            <LocationInfo location={location} aqi={current?.aqi} band={band} currentData={current} loading={loading} />
+            <div className="w-full min-w-0">
+              <LocationInfo location={location} aqi={current?.aqi} band={band} currentData={current} loading={loading} />
+            </div>
 
             {/* Right: Chart and Pollutants */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4 w-full min-w-0">
               {/* Trend Chart */}
-              <div className="rounded-lg border border-ministry-100 bg-ministry-50 p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <p className="font-semibold text-slate-900">24-Hour Trend</p>
+              <div className="rounded-lg border border-ministry-100 bg-ministry-50 p-3">
+                <div className="mb-2 sm:mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <p className="font-semibold text-slate-900 text-sm sm:text-base">24-Hour Trend</p>
                   {firstAqi && current?.aqi && (
                     <TrendIndicator current={current.aqi} previous={firstAqi} />
                   )}
                 </div>
-                <div className="h-[240px] w-full">
+                <div className="h-[150px] sm:h-[200px] md:h-[240px] w-full overflow-hidden rounded-lg">
                   <ResponsiveContainer>
-                    <LineChart data={chartData} margin={{ top: 10, right: 16, bottom: 0, left: -20 }}>
+                    <LineChart data={chartData} margin={{ top: 10, right: 16, bottom: 0, left: 0 }}>
                       <CartesianGrid stroke="#d4e4d8" strokeDasharray="3 3" />
-                      <XAxis dataKey="time" tick={{ fontSize: 11 }} minTickGap={24} />
-                      <YAxis domain={[0, 320]} tick={{ fontSize: 11 }} />
+                      <XAxis dataKey="time" tick={{ fontSize: 10, angle: -45, textAnchor: 'end' }} minTickGap={15} />
+                      <YAxis domain={[0, 320]} tick={{ fontSize: 10 }} />
                       {EPA_AQI_BANDS.slice(0, 5).map((item) => (
                         <ReferenceArea
                           key={item.level}
@@ -243,7 +244,7 @@ export default function AQIMonitor({
                         contentStyle={{ backgroundColor: 'rgba(255,255,255,0.95)', border: '1px solid #e5e7eb', borderRadius: '8px' }}
                         formatter={(value) => [value, 'AQI']}
                       />
-                      <Line dataKey="aqi" dot={false} isAnimationActive={false} stroke="#1A6B3C" strokeWidth={3} type="monotone" />
+                      <Line dataKey="aqi" dot={false} isAnimationActive={false} stroke="#1A6B3C" strokeWidth={2} type="monotone" />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -251,8 +252,8 @@ export default function AQIMonitor({
 
               {/* Pollutants Grid */}
               <div>
-                <p className="mb-3 font-semibold text-slate-900">Pollutant Levels</p>
-                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                <p className="mb-2 sm:mb-3 font-semibold text-slate-900 text-sm sm:text-base">Pollutant Levels</p>
+                <div className="grid gap-2 sm:gap-3 grid-cols-2 xs:grid-cols-2 sm:grid-cols-3">
                   <PollutantCard label="PM2.5" unit="µg/m³" value={current?.pm25} icon={Wind} />
                   <PollutantCard label="PM10" unit="µg/m³" value={current?.pm10} icon={Activity} />
                   <PollutantCard label="SO₂" unit="ppb" value={current?.so2} icon={Zap} />
@@ -265,7 +266,7 @@ export default function AQIMonitor({
           </div>
 
           {/* Info Footer */}
-          <div className="border-t pt-4 text-xs text-slate-600 space-y-1">
+          <div className="border-t pt-3 text-xs text-slate-600 space-y-1">
             <p><strong>Data Source:</strong> Open-Meteo Air Quality (Primary), WAQI/OpenAQ (Validation)</p>
             <p><strong>Update Frequency:</strong> Every 1 hour | <strong>Coverage:</strong> Kogi State and surrounding areas</p>
           </div>

@@ -18,8 +18,8 @@ function StatCard({ label, value, icon: Icon, unit = "" }) {
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">{label}</p>
-          <div className="mt-2 flex items-baseline gap-1">
-            <p className="text-xs sm:text-3xl font-bold text-slate-900 break-words">{value}</p>
+          <div className="mt-2 flex items-baseline gap-1 flex-wrap">
+            <p className="text-xs sm:text-3xl font-bold text-slate-900 break-all">{value}</p>
             {unit && <p className="text-xs text-slate-500 flex-shrink-0">{unit}</p>}
           </div>
         </div>
@@ -32,7 +32,7 @@ function StatCard({ label, value, icon: Icon, unit = "" }) {
 function FloodCard({ flood }) {
   const getRiskColor = (level) => {
     if (level <= 20) return { bg: "#d1fae5", text: "#065f46", border: "#6ee7b7", label: "Low Risk" };
-    if (level <= 40) return { bg: "#fef3c7", text: "#78350f", border: "#fbbf24", label: "Moderate Risk" };
+    if (level <= 50) return { bg: "#fef3c7", text: "#78350f", border: "#fbbf24", label: "Moderate Risk" };
     if (level <= 60) return { bg: "#fed7aa", text: "#7c2d12", border: "#fb923c", label: "High Risk" };
     return { bg: "#fee2e2", text: "#7f1d1d", border: "#fca5a5", label: "Very High Risk" };
   };
@@ -65,6 +65,7 @@ function FloodCard({ flood }) {
       <div className="space-y-2">
         <div className="flex justify-between text-xs font-semibold text-slate-600">
           <span>Low Risk</span>
+          <span>Moderate Risk</span>
           <span>High Risk</span>
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
@@ -86,7 +87,7 @@ function FloodCard({ flood }) {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
+      <div className="grid gap-3 grid-cols-1 xs:grid-cols-2 sm:grid-cols-3">
         <StatCard label="30-Day Rain" value={flood.recent_30day_rain_mm} unit="mm" icon={Cloud} />
         <StatCard label="3-Day Forecast" value={flood.forecast_3day_rain_mm} unit="mm" icon={Calendar} />
         <StatCard label="Risk Trend" value={flood.flood_index >= 50 ? "↑ High" : "↓ Stable"} icon={TrendingUp} />
@@ -153,7 +154,7 @@ function FireCard({ fire }) {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
+      <div className="grid gap-3 grid-cols-1 xs:grid-cols-2 sm:grid-cols-3">
         <StatCard label="Total FRP" value={fire.total_frp} unit="MW" icon={Flame} />
         <StatCard label="High Confidence" value={fire.high_confidence_count} icon={AlertTriangle} />
         <StatCard label="Product" value={fire.product} icon={MapPin} />
@@ -241,27 +242,27 @@ export default function FireFloodPanel() {
 
   if (loading) {
     return (
-      <div className="rounded-lg border border-ministry-100 bg-white p-6 text-ministry-700 shadow-panel flex items-center justify-center gap-3">
-        <Loader2 size={20} className="animate-spin" />
-        <span className="font-semibold">Loading fire and flood risk data...</span>
+      <div className="rounded-lg border border-ministry-100 bg-white p-4 text-ministry-700 shadow-panel flex items-center justify-center gap-2 flex-col">
+        <Loader2 size={16} className="animate-spin" />
+        <span className="font-semibold text-sm text-center">Loading fire and flood risk data...</span>
       </div>
     );
   }
 
   return (
-    <section className="space-y-4" id="alerts">
+    <section className="space-y-3" id="alerts">
       {/* Warning Banner */}
-      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-        <div className="flex gap-3">
-          <AlertTriangle size={20} className="text-amber-700 flex-shrink-0 mt-0.5" />
-          <p className="text-sm font-semibold text-amber-900 leading-relaxed">
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+        <div className="flex flex-col gap-2">
+          <AlertTriangle size={16} className="text-amber-700 self-start" />
+          <p className="text-xs sm:text-sm font-semibold text-amber-900 leading-relaxed">
             Fire and flood products are screening indicators. Ministry decisions should combine these outputs with local field reports and official weather forecasts.
           </p>
         </div>
       </div>
 
       {/* Cards Grid */}
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-3 sm:gap-4 flex-col-reverse md:flex-row">
         {flood ? <FloodCard flood={flood} /> : <ErrorBox error={floodError} title="Flood risk unavailable" />}
         {fire ? <FireCard fire={fire} /> : <ErrorBox error={fireError} title="NASA FIRMS unavailable" />}
       </div>

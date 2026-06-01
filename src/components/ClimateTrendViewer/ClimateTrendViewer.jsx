@@ -129,35 +129,35 @@ export default function ClimateTrendViewer() {
   ];
 
   return (
-    <section className="rounded-lg border border-ministry-100 bg-white p-4 shadow-panel sm:p-5" id="climate">
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div>
+    <section className="rounded-lg border border-ministry-100 bg-white p-2 sm:p-3 md:p-4 shadow-panel" id="climate">
+      <div className="flex flex-col gap-2 sm:gap-3">
+        <div className="w-full">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-leaf-600">Climate Trend Viewer</p>
-          <h2 className="mt-2 text-2xl font-bold text-slate-950">30-year Kogi climate baseline</h2>
+          <h2 className="mt-1 text-xl sm:text-2xl md:text-3xl font-bold text-slate-950">30-year Kogi climate baseline</h2>
         </div>
         <button
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-ministry-500 px-4 text-sm font-bold text-white disabled:opacity-60"
+          className="inline-flex h-9 sm:h-10 items-center justify-center gap-2 rounded-md bg-ministry-500 px-3 sm:px-4 text-xs sm:text-sm font-bold text-white disabled:opacity-60 w-full sm:w-auto"
           disabled={loading || error}
           onClick={() => exportSummaryPdf(summary)}
           type="button"
         >
-          <Download size={16} />
-          Export PDF
+          <Download size={14} />
+          <span>Export PDF</span>
         </button>
       </div>
 
       {loading ? (
-        <div className="mt-6 flex min-h-[180px] items-center justify-center rounded-lg bg-ministry-50 text-ministry-700">
-          <Loader2 className="mr-2 animate-spin" size={20} />
-          Loading NASA POWER climate trends
+        <div className="mt-4 flex min-h-[150px] items-center justify-center rounded-lg bg-ministry-50 text-ministry-700">
+          <Loader2 className="mr-2 animate-spin" size={16} />
+          <span>Loading NASA POWER climate trends</span>
         </div>
       ) : null}
 
-      {error ? <div className="mt-5"><ErrorPanel error={error} onRetry={loadClimate} /></div> : null}
+      {error ? <div className="mt-3"><ErrorPanel error={error} onRetry={loadClimate} /></div> : null}
 
       {!loading && !error ? (
         <>
-          <div className="mt-5 grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="mt-3 grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {[
               ["Warming rate", `${summary.warmingRate} C/decade`],
               ["Mean rainfall", `${summary.meanRainfall} mm/year`],
@@ -166,22 +166,22 @@ export default function ClimateTrendViewer() {
               ["ENSO rainfall r", `${summary.ensoR}`],
               ["Dominant winds", "NE dry / SW wet"]
             ].map(([label, value]) => (
-              <div className="rounded-lg border border-ministry-100 bg-ministry-50 p-4" key={label}>
+              <div className="rounded-lg border border-ministry-100 bg-ministry-50 p-3" key={label}>
                 <p className="text-xs font-bold uppercase tracking-wide text-ministry-700">{label}</p>
-                <p className="mt-2 text-xl font-black text-slate-950">{value}</p>
+                <p className="mt-1 text-lg font-black text-slate-950 break-words">{value}</p>
               </div>
             ))}
           </div>
 
-          <div className="mt-5 grid gap-4 grid-cols-1 lg:grid-cols-2">
-            <div className="rounded-lg border border-ministry-100 p-4">
-              <h3 className="text-base font-black text-slate-950">Temperature anomaly</h3>
-              <div className="mt-3 h-[200px] sm:h-[280px]">
+          <div className="mt-4 grid gap-3 grid-cols-1 w-full overflow-hidden">
+            <div className="rounded-lg border border-ministry-100 p-3 min-w-0">
+              <h3 className=" font-black text-slate-950 text-sm sm:text-base">Temperature anomaly</h3>
+              <div className="mt-2 h-[150px] sm:h-[180px] md:h-[240px] w-full overflow-hidden rounded">
                 <ResponsiveContainer>
                   <ComposedChart data={chartRows}>
                     <CartesianGrid stroke="#d4e4d8" strokeDasharray="3 3" />
-                    <XAxis dataKey="year" tick={{ fontSize: 11 }} minTickGap={22} />
-                    <YAxis tick={{ fontSize: 11 }} />
+                    <XAxis dataKey="year" tick={{ fontSize: 9 }} minTickGap={15} />
+                    <YAxis tick={{ fontSize: 9 }} />
                     <Tooltip />
                     <Bar dataKey="temp_anomaly" fill="#1D9E75" name="Anomaly vs baseline" />
                     <Line dataKey="t2m" dot={false} stroke="#1A6B3C" strokeWidth={2} name="Annual T2M" />
@@ -190,14 +190,14 @@ export default function ClimateTrendViewer() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-ministry-100 p-4">
-              <h3 className="text-base font-black text-slate-950">Rainfall variability</h3>
-              <div className="mt-3 h-[200px] sm:h-[280px]">
+            <div className="rounded-lg border border-ministry-100 p-3 min-w-0">
+              <h3 className=" font-black text-slate-950 text-sm sm:text-base">Rainfall variability</h3>
+              <div className="mt-2 h-[150px] sm:h-[180px] md:h-[240px] w-full overflow-hidden rounded">
                 <ResponsiveContainer>
                   <ComposedChart data={chartRows}>
                     <CartesianGrid stroke="#d4e4d8" strokeDasharray="3 3" />
-                    <XAxis dataKey="year" tick={{ fontSize: 11 }} minTickGap={22} />
-                    <YAxis tick={{ fontSize: 11 }} />
+                    <XAxis dataKey="year" tick={{ fontSize: 9 }} minTickGap={15} />
+                    <YAxis tick={{ fontSize: 9 }} />
                     <Tooltip />
                     <Legend />
                     <Bar dataKey="rainfall" fill="#5DCAA5" name="Annual rainfall" />
@@ -207,14 +207,14 @@ export default function ClimateTrendViewer() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-ministry-100 p-4">
-              <h3 className="text-base font-black text-slate-950">Seasonal wind regime</h3>
-              <div className="mt-3 h-[200px] sm:h-[280px]">
+            <div className="rounded-lg border border-ministry-100 p-3 min-w-0">
+              <h3 className=" font-black text-slate-950 text-sm sm:text-base">Seasonal wind regime</h3>
+              <div className="mt-2 h-[150px] sm:h-[180px] md:h-[240px] w-full overflow-hidden rounded">
                 <ResponsiveContainer>
                   <RadarChart data={windRoseRows}>
                     <PolarGrid />
-                    <PolarAngleAxis dataKey="season" tick={{ fontSize: 12 }} />
-                    <PolarRadiusAxis angle={30} tick={{ fontSize: 10 }} />
+                    <PolarAngleAxis dataKey="season" tick={{ fontSize: 9 }} />
+                    <PolarRadiusAxis angle={30} tick={{ fontSize: 8 }} />
                     <Radar dataKey="wind" fill="#5DCAA5" fillOpacity={0.45} name="WS10M" stroke="#1A6B3C" />
                     <Tooltip />
                   </RadarChart>
@@ -222,29 +222,29 @@ export default function ClimateTrendViewer() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-ministry-100 p-4">
-              <h3 className="text-base font-black text-slate-950">Solar radiation</h3>
-              <div className="mt-3 h-[200px] sm:h-[280px]">
+            <div className="rounded-lg border border-ministry-100 p-3 min-w-0">
+              <h3 className=" font-black text-slate-950 text-sm sm:text-base">Solar radiation</h3>
+              <div className="mt-2 h-[150px] sm:h-[180px] md:h-[240px] w-full overflow-hidden rounded">
                 <ResponsiveContainer>
                   <LineChart data={chartRows}>
                     <CartesianGrid stroke="#d4e4d8" strokeDasharray="3 3" />
-                    <XAxis dataKey="year" tick={{ fontSize: 11 }} minTickGap={22} />
-                    <YAxis tick={{ fontSize: 11 }} />
+                    <XAxis dataKey="year" tick={{ fontSize: 9 }} minTickGap={15} />
+                    <YAxis tick={{ fontSize: 9 }} />
                     <Tooltip />
-                    <Line dataKey="solar" dot={false} stroke="#639922" strokeWidth={3} name="ALLSKY SW DWN" />
+                    <Line dataKey="solar" dot={false} stroke="#639922" strokeWidth={2} name="ALLSKY SW DWN" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            <div className="rounded-lg border border-ministry-100 p-4 grid-cols-1 lg:col-span-2">
-              <h3 className="text-base font-black text-slate-950">SPI drought index</h3>
-              <div className="mt-3 h-[200px] sm:h-[260px]">
+            <div className="rounded-lg border border-ministry-100 p-3 min-w-0">
+              <h3 className=" font-black text-slate-950 text-sm sm:text-base">SPI drought index</h3>
+              <div className="mt-2 h-[150px] sm:h-[180px] md:h-[240px] w-full overflow-hidden rounded">
                 <ResponsiveContainer>
                   <BarChart data={series.PRECTOTCORR?.spi ?? []}>
                     <CartesianGrid stroke="#d4e4d8" strokeDasharray="3 3" />
-                    <XAxis dataKey="year" tick={{ fontSize: 11 }} minTickGap={22} />
-                    <YAxis tick={{ fontSize: 11 }} />
+                    <XAxis dataKey="year" tick={{ fontSize: 9 }} minTickGap={15} />
+                    <YAxis tick={{ fontSize: 9 }} />
                     <Tooltip />
                     <Bar dataKey="spi" fill="#8F3F97" name="SPI" />
                   </BarChart>

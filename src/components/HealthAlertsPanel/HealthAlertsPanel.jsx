@@ -148,44 +148,44 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, loading }) {
   ];
 
   return (
-    <section className="rounded-lg border border-ministry-100 bg-white p-4 shadow-panel sm:p-5 space-y-4" id="health">
+    <section className="rounded-lg border border-ministry-100 bg-white p-2 sm:p-3 md:p-4 shadow-panel space-y-3 sm:space-y-4" id="health">
       {/* Header */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+      <div className="flex flex-col gap-2">
+        <div className="w-full">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-leaf-600">Health Alerts</p>
-          <h2 className="mt-2 text-2xl font-bold text-slate-950">Public Advisory</h2>
+          <h2 className="mt-1 text-xl sm:text-2xl font-bold text-slate-950">Public Advisory</h2>
         </div>
-        <div className="rounded-md border border-ministry-100 bg-ministry-50 px-3 py-2 text-sm font-semibold text-ministry-700">
+        <div className="rounded-md border border-ministry-100 bg-ministry-50 px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-ministry-700 w-full sm:w-auto text-center">
           Forecast: {forecastBand.category}
         </div>
       </div>
 
       {/* Main Advisory Banner */}
       <div
-        className="rounded-lg p-5"
+        className="rounded-lg p-3 sm:p-4"
         style={{
           backgroundColor: aqiBand.color_hex,
           color: aqiBand.textColor
         }}
       >
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex flex-col gap-3">
           <div>
-            <p className="text-sm font-bold uppercase tracking-wide opacity-85">{loading && !advisory ? "Loading" : advisory?.category}</p>
-            <p className="mt-3 max-w-3xl text-xl font-black leading-snug sm:text-2xl">{advisory?.advisory_text}</p>
-            {advisory?.health_statement && <p className="mt-3 max-w-3xl text-sm font-semibold opacity-85">{advisory.health_statement}</p>}
-            {advisory?.sensitive_groups_text && <p className="mt-2 max-w-3xl text-sm opacity-85">{advisory.sensitive_groups_text}</p>}
+            <p className="text-xs sm:text-sm font-bold uppercase tracking-wide opacity-85">{loading && !advisory ? "Loading" : advisory?.category}</p>
+            <p className="mt-2 max-w-full text-lg sm:text-xl font-black leading-snug text-wrap break-words">{advisory?.advisory_text}</p>
+            {advisory?.health_statement && <p className="mt-2 max-w-full text-xs sm:text-sm font-semibold opacity-85 break-words">{advisory.health_statement}</p>}
+            {advisory?.sensitive_groups_text && <p className="mt-1 max-w-full text-xs sm:text-sm opacity-85 break-words">{advisory.sensitive_groups_text}</p>}
           </div>
-          <p className="text-sm font-semibold opacity-80 lg:text-right">Updated {formatDateTime(advisory?.timestamp)}</p>
+          <p className="text-xs sm:text-sm font-semibold opacity-80 text-center sm:text-right mt-2">{formatDateTime(advisory?.timestamp)}</p>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex gap-2 border-b border-slate-200 overflow-x-auto">
+      <div className="flex gap-1 border-b border-slate-200 overflow-x-auto py-1">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${
+            className={`px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-semibold whitespace-nowrap border-b-2 transition-colors flex-shrink-0 ${
               activeTab === tab.id
                 ? "border-ministry-700 text-ministry-700"
                 : "border-transparent text-slate-600 hover:text-slate-900"
@@ -198,20 +198,20 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, loading }) {
 
       {/* Tab Content */}
       {activeTab === "overview" && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* AQI Range */}
           {advisory?.aqi_range && (
-            <div className="bg-ministry-50 rounded-lg p-4">
-              <p className="text-sm font-semibold text-slate-700">AQI Range</p>
-              <p className="text-lg font-bold text-ministry-700 mt-1">{advisory.aqi_range}</p>
+            <div className="bg-ministry-50 rounded-lg p-3">
+              <p className="text-xs sm:text-sm font-semibold text-slate-700">AQI Range</p>
+              <p className="text-base sm:text-lg font-bold text-ministry-700 mt-1">{advisory.aqi_range}</p>
             </div>
           )}
 
           {/* Exposure Guidance */}
           {advisory?.exposure_guidance && (
-            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+            <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
               {Object.entries(advisory.exposure_guidance).map(([key, value]) => (
-                <div key={key} className="bg-slate-50 rounded-lg p-3">
+                <div key={key} className="bg-slate-50 rounded-lg p-2 sm:p-3">
                   <p className="text-xs font-semibold text-slate-600 uppercase">{key.replace(/_/g, " ")}</p>
                   <p className="text-sm font-semibold text-slate-900 mt-1">{value}</p>
                 </div>
@@ -221,8 +221,8 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, loading }) {
 
           {/* Activities Grid */}
           <div>
-            <p className="font-semibold text-slate-900 mb-3">Recommended Activities</p>
-            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <p className="font-semibold text-slate-900 text-sm mb-2">Recommended Activities</p>
+            <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
               {Object.entries(advisory?.activities_detailed || advisory?.activities || {}).map(([name, details]) => (
                 <ActivityCard key={name} name={name} value={details} details={typeof details === 'object' ? details : null} />
               ))}
@@ -232,16 +232,16 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, loading }) {
       )}
 
       {activeTab === "impacts" && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Health Impacts by Group */}
           {advisory?.health_impacts && (
             <div>
-              <p className="font-semibold text-slate-900 mb-3">Expected Health Impacts</p>
+              <p className="font-semibold text-slate-900 text-sm mb-2">Expected Health Impacts</p>
               <div className="space-y-2">
                 {Object.entries(advisory.health_impacts).map(([group, impact]) => (
-                  <div key={group} className="bg-slate-50 rounded-lg p-3">
-                    <p className="text-sm font-semibold text-slate-700 capitalize">{group.replace(/_/g, " ")}</p>
-                    <p className="text-sm text-slate-600 mt-1">{impact}</p>
+                  <div key={group} className="bg-slate-50 rounded-lg p-2 sm:p-3">
+                    <p className="text-xs sm:text-sm font-semibold text-slate-700 capitalize">{group.replace(/_/g, " ")}</p>
+                    <p className="text-xs sm:text-sm text-slate-600 mt-1">{impact}</p>
                   </div>
                 ))}
               </div>
@@ -250,14 +250,14 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, loading }) {
 
           {/* Symptoms to Watch */}
           {advisory?.symptoms_to_watch && advisory.symptoms_to_watch.length > 0 && (
-            <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+            <div className="bg-red-50 rounded-lg p-3 border border-red-200">
               <div className="flex gap-2">
-                <AlertCircle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
+                <AlertCircle size={16} className="text-red-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-red-900">Symptoms to Watch For</p>
+                  <p className="font-semibold text-red-900 text-sm">Symptoms to Watch For</p>
                   <ul className="mt-2 space-y-1">
                     {advisory.symptoms_to_watch.map((symptom, idx) => (
-                      <li key={idx} className="text-sm text-red-800 flex gap-2">
+                      <li key={idx} className="text-xs sm:text-sm text-red-800 flex gap-2">
                         <span className="text-red-600 mt-0.5">•</span>
                         <span>{symptom}</span>
                       </li>
@@ -271,7 +271,7 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, loading }) {
           {/* Risk Groups */}
           {advisory?.risk_groups && advisory.risk_groups.length > 0 && (
             <div>
-              <p className="font-semibold text-slate-900 mb-3">At-Risk Groups</p>
+              <p className="font-semibold text-slate-900 text-sm mb-2">At-Risk Groups</p>
               <div className="space-y-2">
                 {advisory.risk_groups.map((group, idx) => (
                   <RiskGroup key={idx} group={group} />
@@ -283,15 +283,15 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, loading }) {
       )}
 
       {activeTab === "protection" && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Protective Measures */}
           {advisory?.protective_measures && (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {advisory.protective_measures.outdoor && (
                 <ExpandableSection title="Outdoor Protection" icon={Wind} defaultOpen={true}>
-                  <ul className="space-y-2">
+                  <ul className="space-y-1">
                     {advisory.protective_measures.outdoor.map((measure, idx) => (
-                      <li key={idx} className="flex gap-2 text-sm text-slate-700">
+                      <li key={idx} className="flex gap-1 text-xs sm:text-sm text-slate-700">
                         <span className="text-ministry-600 mt-0.5">✓</span>
                         <span>{measure}</span>
                       </li>
@@ -302,9 +302,9 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, loading }) {
 
               {advisory.protective_measures.indoor && (
                 <ExpandableSection title="Indoor Protection" icon={Home} defaultOpen={true}>
-                  <ul className="space-y-2">
+                  <ul className="space-y-1">
                     {advisory.protective_measures.indoor.map((measure, idx) => (
-                      <li key={idx} className="flex gap-2 text-sm text-slate-700">
+                      <li key={idx} className="flex gap-1 text-xs sm:text-sm text-slate-700">
                         <span className="text-ministry-600 mt-0.5">✓</span>
                         <span>{measure}</span>
                       </li>
@@ -315,9 +315,9 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, loading }) {
 
               {advisory.protective_measures.personal_protection && (
                 <ExpandableSection title="Personal Protection" icon={Shield} defaultOpen={true}>
-                  <ul className="space-y-2">
+                  <ul className="space-y-1">
                     {advisory.protective_measures.personal_protection.map((measure, idx) => (
-                      <li key={idx} className="flex gap-2 text-sm text-slate-700">
+                      <li key={idx} className="flex gap-1 text-xs sm:text-sm text-slate-700">
                         <span className="text-ministry-600 mt-0.5">✓</span>
                         <span>{measure}</span>
                       </li>
@@ -328,9 +328,9 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, loading }) {
 
               {advisory.protective_measures.medication && (
                 <ExpandableSection title="Medication & Health" icon={HeartPulse} defaultOpen={true}>
-                  <ul className="space-y-2">
+                  <ul className="space-y-1">
                     {advisory.protective_measures.medication.map((measure, idx) => (
-                      <li key={idx} className="flex gap-2 text-sm text-slate-700">
+                      <li key={idx} className="flex gap-1 text-xs sm:text-sm text-slate-700">
                         <span className="text-ministry-600 mt-0.5">✓</span>
                         <span>{measure}</span>
                       </li>
@@ -344,9 +344,9 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, loading }) {
           {/* Indoor Air Measures */}
           {advisory?.indoor_air_measures && advisory.indoor_air_measures.length > 0 && (
             <ExpandableSection title="Indoor Air Quality Measures" icon={Droplets}>
-              <ul className="space-y-2">
+              <ul className="space-y-1">
                 {advisory.indoor_air_measures.map((measure, idx) => (
-                  <li key={idx} className="flex gap-2 text-sm text-slate-700">
+                  <li key={idx} className="flex gap-1 text-xs sm:text-sm text-slate-700">
                     <span className="text-ministry-600 mt-0.5">✓</span>
                     <span>{measure}</span>
                   </li>
@@ -358,16 +358,16 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, loading }) {
       )}
 
       {activeTab === "tips" && (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {advisory?.health_tips && advisory.health_tips.length > 0 ? (
             advisory.health_tips.map((tip, idx) => (
-              <div key={idx} className="bg-blue-50 rounded-lg p-3 border border-blue-200 flex gap-3">
-                <AlertCircle size={18} className="text-blue-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-blue-900">{tip}</p>
+              <div key={idx} className="bg-blue-50 rounded-lg p-2 sm:p-3 border border-blue-200 flex gap-2">
+                <AlertCircle size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                <p className="text-xs sm:text-sm text-blue-900">{tip}</p>
               </div>
             ))
           ) : (
-            <p className="text-slate-600">No specific health tips available.</p>
+            <p className="text-xs sm:text-sm text-slate-600">No specific health tips available.</p>
           )}
         </div>
       )}

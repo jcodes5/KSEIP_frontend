@@ -1009,8 +1009,8 @@ const DashboardPage = () => {
   }, [aqiLocation]);
 
   return (
-    <div className="dashboard-container min-h-screen bg-gradient-to-b from-green-50 to-emerald-50 p-4 sm:p-6 lg:p-8">
-      <div className="mx-auto max-w-7xl grid gap-6">
+    <div className="dashboard-container min-h-screen bg-gradient-to-b from-green-50 to-emerald-50 p-2 sm:p-4 md:p-6 w-full">
+      <div className="mx-auto max-w-7xl grid gap-3 sm:gap-4 md:gap-6 w-full px-0">
         <AQIMonitor
           location={aqiLocation}
           onLocationChange={handleLocationChange}
@@ -1027,7 +1027,7 @@ const DashboardPage = () => {
         />
         <ClimateTrendViewer />
         <FireFloodPanel />
-        <Suspense fallback={<div>Loading Plume Mapper...</div>}>
+        <Suspense fallback={<div className="p-4 text-center text-gray-600">Loading Plume Mapper...</div>}>
           <PlumeMapper />
         </Suspense>
       </div>
@@ -1287,9 +1287,9 @@ const Footer = () => (
 export default function App() {
   return (
     <Router>
-      <div className="App min-h-screen flex flex-col">
+      <div className="App min-h-screen flex flex-col w-full">
         <Navbar />
-        <main className="flex-grow">
+        <main className="flex-grow w-full">
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />

@@ -182,9 +182,9 @@ export default function PlumeMapper() {
   }
 
   return (
-    <section className="grid gap-4 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px]" id="plume">
-      <div className="overflow-hidden rounded-lg border border-ministry-100 bg-white shadow-panel">
-        <div className="h-[300px] sm:h-[400px] lg:h-[560px] w-full">
+    <section className="grid gap-3 sm:gap-4 grid-cols-1 w-full overflow-hidden" id="plume">
+      <div className="overflow-hidden rounded-lg border border-ministry-100 bg-white shadow-panel min-w-0">
+        <div className="h-[200px] sm:h-[250px] md:h-[350px] lg:h-[450px] xl:h-[500px] w-full relative z-0">
           <MapContainer center={[7.8, 6.74]} className="h-full w-full" zoom={9}>
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -231,25 +231,25 @@ export default function PlumeMapper() {
         </div>
       </div>
 
-      <aside className="rounded-lg border border-ministry-100 bg-white p-3 sm:p-4 shadow-panel overflow-y-auto">
-        <div className="flex items-start justify-between gap-3">
+      <aside className="rounded-lg border border-ministry-100 bg-white p-2 sm:p-3 md:p-4 shadow-panel overflow-y-auto">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-leaf-600">Plume Mapper</p>
-            <h2 className="mt-2 text-xl font-bold text-slate-950">{selectedSource.name}</h2>
+            <h2 className="mt-1 text-lg sm:text-xl font-bold text-slate-950">{selectedSource.name}</h2>
           </div>
-          <span className="rounded-md bg-ministry-50 px-3 py-2 text-sm font-bold text-ministry-700">
+          <span className="rounded-md bg-ministry-50 px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-bold text-ministry-700">
             {meteo?.stability_class || "Auto"}
           </span>
         </div>
 
         {error ? (
-          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-900">
+          <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-2 sm:p-3 text-xs sm:text-sm text-red-900">
             <p className="font-bold">{error.code || "PLUME_ERROR"}</p>
             <p className="mt-1">{error.message}</p>
           </div>
         ) : null}
 
-        <form className="mt-4 grid gap-3" onSubmit={submitSimulation}>
+        <form className="mt-3 grid gap-2 sm:gap-3" onSubmit={submitSimulation}>
           {[
             ["emission_rate", "Emission rate Q (g/s)"],
             ["stack_height", "Stack height H (m)"],
@@ -259,10 +259,10 @@ export default function PlumeMapper() {
             ["wind_speed", "Wind speed (m/s)"],
             ["wind_dir", "Wind direction (deg)"]
           ].map(([field, label]) => (
-            <label className="grid gap-1 text-sm font-semibold text-slate-700" key={field}>
+            <label className="grid gap-1 text-xs sm:text-sm font-semibold text-slate-700" key={field}>
               {label}
               <input
-                className="h-10 rounded-md border border-ministry-100 px-3 outline-none focus:border-leaf-600"
+                className="h-9 sm:h-10 rounded-md border border-ministry-100 px-2 sm:px-3 outline-none focus:border-leaf-600 text-xs sm:text-sm"
                 inputMode="decimal"
                 onChange={(event) => updateField(field, event.target.value)}
                 type="number"
@@ -271,10 +271,10 @@ export default function PlumeMapper() {
             </label>
           ))}
 
-          <label className="grid gap-1 text-sm font-semibold text-slate-700">
+          <label className="grid gap-1 text-xs sm:text-sm font-semibold text-slate-700">
             Stability class
             <select
-              className="h-10 rounded-md border border-ministry-100 px-3 outline-none focus:border-leaf-600"
+              className="h-9 sm:h-10 rounded-md border border-ministry-100 px-2 sm:px-3 outline-none focus:border-leaf-600 text-xs sm:text-sm"
               onChange={(event) => updateField("stability_class", event.target.value)}
               value={form.stability_class}
             >
@@ -285,7 +285,7 @@ export default function PlumeMapper() {
             </select>
           </label>
 
-          <label className="grid gap-1 text-sm font-semibold text-slate-700">
+          <label className="grid gap-1 text-xs sm:text-sm font-semibold text-slate-700">
             Isopleth opacity
             <input
               max="0.85"
@@ -298,19 +298,19 @@ export default function PlumeMapper() {
           </label>
 
           <button
-            className="mt-2 inline-flex h-11 items-center justify-center gap-2 rounded-md bg-ministry-500 px-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-2 inline-flex h-10 sm:h-11 items-center justify-center gap-2 rounded-md bg-ministry-500 px-3 sm:px-4 text-xs sm:text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
             disabled={loading}
             type="submit"
           >
-            {loading ? <Loader2 className="animate-spin" size={18} /> : <Play size={18} />}
+            {loading ? <Loader2 className="animate-spin" size={16} /> : <Play size={16} />}
             Run Simulation
           </button>
         </form>
 
         {meteo ? (
-          <div className="mt-4 rounded-lg bg-ministry-50 p-3 text-sm text-ministry-900">
+          <div className="mt-3 rounded-lg bg-ministry-50 p-2 sm:p-3 text-xs sm:text-sm text-ministry-900">
             <div className="flex items-center gap-2 font-bold">
-              <Wind size={16} />
+              <Wind size={14} />
               Current meteo
             </div>
             <p className="mt-1">Wind {meteo.wind_speed} m/s from {meteo.wind_dir} deg, cloud {meteo.cloud_cover}%</p>
@@ -318,8 +318,8 @@ export default function PlumeMapper() {
         ) : null}
 
         {result ? (
-          <div className="mt-4 rounded-lg border border-ministry-100 p-3">
-            <div className="grid grid-cols-2 gap-2 text-sm">
+          <div className="mt-3 rounded-lg border border-ministry-100 p-2 sm:p-3">
+            <div className="grid grid-cols-2 gap-1 sm:gap-2 text-xs sm:text-sm">
               <div>
                 <p className="text-slate-500">Cmax</p>
                 <p className="font-black text-slate-950">{result.cmax} ug/m3</p>
@@ -329,20 +329,20 @@ export default function PlumeMapper() {
                 <p className="font-black text-slate-950">{result.xmax} m</p>
               </div>
             </div>
-            <div className="mt-3 grid gap-2 text-sm">
+            <div className="mt-2 sm:mt-3 grid gap-1 sm:gap-2 text-xs sm:text-sm">
               {exposureRows.map(([zone, value]) => (
-                <div className="flex justify-between gap-3" key={zone}>
-                  <span className="font-semibold uppercase text-slate-600">{zone}</span>
-                  <span>{value.area_km2} km2 / {value.estimated_population} people</span>
+                <div className="flex justify-between gap-2 sm:gap-3" key={zone}>
+                  <span className="font-semibold uppercase text-slate-600 text-xs">{zone}</span>
+                  <span className="text-xs">{value.area_km2} km2 / {value.estimated_population} people</span>
                 </div>
               ))}
             </div>
             <button
-              className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-ministry-100 bg-white text-sm font-bold text-ministry-700"
+              className="mt-2 sm:mt-3 inline-flex h-9 sm:h-10 w-full items-center justify-center gap-2 rounded-md border border-ministry-100 bg-white text-xs sm:text-sm font-bold text-ministry-700"
               onClick={() => downloadCsv(result)}
               type="button"
             >
-              <Download size={16} />
+              <Download size={14} />
               Download CSV
             </button>
           </div>
