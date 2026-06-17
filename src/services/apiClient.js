@@ -1,8 +1,14 @@
+const isDev = typeof window === 'undefined' ? true : window.location.hostname === 'localhost';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
-  (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:4000');
+  (isDev ? 'http://localhost:4000' : ''); // Use relative URLs in production
 
 async function request(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  // Ensure we're not double-prefixing with /api if API_BASE_URL already includes it
+  const fullPath = API_BASE_URL && API_BASE_URL.endsWith('/')
+    ? `${API_BASE_URL}${path.substring(1)}`
+    : `${API_BASE_URL}${path}`;
+    
+  const response = await fetch(fullPath, {
     headers: {
       accept: "application/json",
       ...(options.body ? { "Content-Type": "application/json" } : {})
