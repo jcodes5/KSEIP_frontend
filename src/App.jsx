@@ -6,19 +6,23 @@ import {
   Bell,
   Building2,
   CloudSun,
+  Download,
   FileText,
   Flame,
   MapPinned,
   Radio,
   ShieldCheck,
+  Smartphone,
   Menu,
   X
 } from "lucide-react";
 import AQIMonitor from "./components/AQIMonitor/AQIMonitor.jsx";
 import ClimateTrendViewer from "./components/ClimateTrendViewer/ClimateTrendViewer.jsx";
+import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import FireFloodPanel from "./components/FireFloodPanel/FireFloodPanel.jsx";
 import HealthAlertsPanel from "./components/HealthAlertsPanel/HealthAlertsPanel.jsx";
 import { getAqiHistory, getCurrentAqi, getHealthAdvisory } from "./services/apiClient.js";
+import { LANGUAGES, t } from "./services/i18n.js";
 
 // Lazy load PlumeMapper
 const PlumeMapper = lazy(() => import("./components/PlumeMapper/PlumeMapper.jsx"));
@@ -125,6 +129,13 @@ const HomeMetric = ({ value, label }) => (
     <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-white/70">{label}</p>
   </div>
 );
+
+const DASHBOARD_SECTIONS = [
+  { id: "aqi", label: "AQI", description: "Air quality and pollutant trends", icon: CloudSun },
+  { id: "health", label: "Health", description: "Public health advisory", icon: Bell },
+  { id: "climate", label: "Climate", description: "Long-term climate evidence", icon: Activity },
+  { id: "alerts", label: "Hazards", description: "Fire and flood monitoring", icon: Flame }
+];
 
 const StatusRow = ({ label, value }) => (
   <div className="flex items-center justify-between gap-4 border-b border-slate-200 py-3 last:border-b-0">
@@ -973,8 +984,19 @@ const DocumentationPage = () => (
   </div>
 );
 
-const DashboardPage = () => {
-  const [aqiLocation, setAqiLocation] = useState("lokoja");
+const DashboardPage = ({ language }) => {
+  const routerLocation = useLocation();
+  const activeAqiRequestRef = React.useRef(0);
+  const normalizeLocation = (value) => {
+    const id = String(value ?? "lokoja").trim().toLowerCase();
+    return id || "lokoja";
+  };
+  const initialLocation = normalizeLocation(new URLSearchParams(window.location.search).get("location"));
+  const initialSection = DASHBOARD_SECTIONS.some((section) => section.id === window.location.hash.slice(1))
+    ? window.location.hash.slice(1)
+    : "aqi";
+  const [activeSection, setActiveSection] = useState(initialSection);
+  const [aqiLocation, setAqiLocation] = useState(initialLocation);
   const [aqiCurrent, setAqiCurrent] = useState(null);
   const [aqiHistory, setAqiHistory] = useState(null);
   const [healthAdvisory, setHealthAdvisory] = useState(null);
@@ -982,25 +1004,47 @@ const DashboardPage = () => {
   const [loading, setLoading] = useState(true);
 
   const handleLocationChange = (newLocation) => {
-    setAqiLocation(newLocation);
+    const normalizedLocation = normalizeLocation(newLocation);
+    activeAqiRequestRef.current += 1;
+    setAqiLocation(normalizedLocation);
+    setAqiCurrent(null);
+    setAqiHistory(null);
+    setHealthAdvisory(null);
+    setAqiError(null);
+    setLoading(true);
   };
 
   const fetchAqiData = async (location) => {
+    const requestId = activeAqiRequestRef.current + 1;
+    activeAqiRequestRef.current = requestId;
     setLoading(true);
     setAqiError(null);
     try {
       const [current, history, advisory] = await Promise.all([
         getCurrentAqi(location),
-        getAqiHistory(location),
+        getAqiHistory(location, 168),
         getHealthAdvisory(location),
       ]);
+      if (requestId !== activeAqiRequestRef.current) return;
+      if (current?.location_id && current.location_id !== location) {
+        const mismatchError = new Error(`AQI data returned for ${current.location || current.location_id}, not ${location}.`);
+        mismatchError.code = "AQI_LOCATION_MISMATCH";
+        throw mismatchError;
+      }
       setAqiCurrent(current);
       setAqiHistory(history);
       setHealthAdvisory(advisory);
     } catch (error) {
+      if (requestId !== activeAqiRequestRef.current) return;
       setAqiError(error);
+      // Reset the data when there's an error to prevent showing old location data
+      setAqiCurrent(null);
+      setAqiHistory(null);
+      setHealthAdvisory(null);
     } finally {
-      setLoading(false);
+      if (requestId === activeAqiRequestRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -1008,36 +1052,131 @@ const DashboardPage = () => {
     fetchAqiData(aqiLocation);
   }, [aqiLocation]);
 
+  useEffect(() => {
+    const hashSection = routerLocation.hash.slice(1);
+    if (DASHBOARD_SECTIONS.some((section) => section.id === hashSection)) {
+      setActiveSection(hashSection);
+    }
+  }, [routerLocation.hash]);
+
+  const openDashboardSection = (sectionId) => {
+    setActiveSection(sectionId);
+    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${sectionId}`);
+  };
+
   return (
-    <div className="dashboard-container min-h-screen bg-gradient-to-b from-green-50 to-emerald-50 p-2 sm:p-4 md:p-6 w-full">
-      <div className="mx-auto max-w-7xl grid gap-3 sm:gap-4 md:gap-6 w-full px-0">
-        <AQIMonitor
-          location={aqiLocation}
-          onLocationChange={handleLocationChange}
-          current={aqiCurrent}
-          history={aqiHistory}
-          loading={loading}
-          error={aqiError}
-          onRetry={() => fetchAqiData(aqiLocation)}
-        />
-        <HealthAlertsPanel
-          advisory={healthAdvisory}
-          aqiCurrent={aqiCurrent}
-          loading={loading}
-        />
-        <ClimateTrendViewer />
-        <FireFloodPanel />
-        <Suspense fallback={<div className="p-4 text-center text-gray-600">Loading Plume Mapper...</div>}>
+    <div className="dashboard-container min-h-screen bg-[#f5f7f3] p-3 sm:p-4 md:p-6 w-full">
+      <div className="mx-auto grid max-w-7xl gap-4 w-full px-0">
+        <header className="rounded-lg border border-ministry-100 bg-white p-4 shadow-sm sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-ministry-700">Dashboard</p>
+              <h1 className="mt-1 text-2xl font-black text-slate-950 sm:text-3xl">Environmental monitoring sections</h1>
+            </div>
+            <p className="max-w-2xl text-sm font-semibold leading-6 text-slate-600">
+              Select one monitoring section at a time for faster mobile scanning and clearer field review.
+            </p>
+          </div>
+        </header>
+
+        <nav className="sticky top-[102px] z-30 rounded-lg border border-ministry-100 bg-white p-2 shadow-sm" aria-label="Dashboard sections">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {DASHBOARD_SECTIONS.map(({ id, label, description, icon: Icon }) => {
+              const selected = activeSection === id;
+              return (
+                <button
+                  aria-current={selected ? "page" : undefined}
+                  className={`flex min-h-[72px] items-center gap-2 rounded-md border px-3 py-2 text-left transition ${
+                    selected
+                      ? "border-ministry-500 bg-ministry-50 text-ministry-900"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-ministry-100 hover:bg-slate-50"
+                  }`}
+                  key={id}
+                  onClick={() => openDashboardSection(id)}
+                  type="button"
+                >
+                  <Icon className="h-5 w-5 shrink-0" />
+                  <span className="min-w-0">
+                    <span className="block text-sm font-black">{label}</span>
+                    <span className="mt-0.5 hidden text-xs font-semibold text-slate-500 sm:block">{description}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+
+        <div className="w-full">
+          {activeSection === "aqi" ? (
+            <ErrorBoundary title="AQI monitor failed">
+              <AQIMonitor
+                location={aqiLocation}
+                onLocationChange={handleLocationChange}
+                current={aqiCurrent}
+                history={aqiHistory}
+                language={language}
+                loading={loading}
+                error={aqiError}
+                onRetry={() => fetchAqiData(aqiLocation)}
+              />
+            </ErrorBoundary>
+          ) : null}
+          {activeSection === "health" ? (
+            <ErrorBoundary title="Health advisory failed">
+              <HealthAlertsPanel
+                advisory={healthAdvisory}
+                aqiCurrent={aqiCurrent}
+                language={language}
+                loading={loading}
+              />
+            </ErrorBoundary>
+          ) : null}
+          {activeSection === "climate" ? (
+            <ErrorBoundary title="Climate panel failed">
+              <ClimateTrendViewer language={language} />
+            </ErrorBoundary>
+          ) : null}
+          {activeSection === "alerts" ? (
+            <ErrorBoundary title="Fire and flood panel failed">
+              <FireFloodPanel language={language} />
+            </ErrorBoundary>
+          ) : null}
+        </div>
+        {/* <Suspense fallback={<div className="p-4 text-center text-gray-600">Loading Plume Mapper...</div>}>
           <PlumeMapper />
-        </Suspense>
+        </Suspense> */}
       </div>
     </div>
   );
 };
 
+const RouteSkeleton = ({ label = "Loading" }) => (
+  <div className="grid gap-3 rounded-lg border border-ministry-100 bg-white p-4 shadow-panel">
+    <div className="h-4 w-40 animate-pulse rounded bg-slate-200" />
+    <div className="h-8 w-2/3 animate-pulse rounded bg-slate-200" />
+    <div className="grid gap-3 md:grid-cols-[320px_1fr]">
+      <div className="h-80 animate-pulse rounded bg-slate-200" />
+      <div className="h-80 animate-pulse rounded bg-slate-200" />
+    </div>
+    <span className="sr-only">{label}</span>
+  </div>
+);
+
+const SimulatorPage = () => (
+  <div className="min-h-screen bg-gradient-to-b from-green-50 to-emerald-50 p-2 sm:p-4 md:p-6">
+    <div className="mx-auto max-w-7xl">
+      <Suspense fallback={<RouteSkeleton label="Loading Simulator" />}>
+        <ErrorBoundary title="Simulator failed">
+          <PlumeMapper />
+        </ErrorBoundary>
+      </Suspense>
+    </div>
+  </div>
+);
+
 // Create Navbar component
 // ─── Navbar ────────────────────────────────────────────────────────────────
-const Navbar = () => {
+const Navbar = ({ language, onLanguageChange }) => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -1088,7 +1227,7 @@ const Navbar = () => {
     <nav ref={navRef} className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-md">
       {/* Gov bar */}
       <div className="bg-ministry-900 px-4 py-2 text-center text-xs font-bold uppercase tracking-[0.18em] text-white/75">
-         environmental intelligence service for Kogi State
+         {t(language, "govBar")}
       </div>
 
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-5 lg:px-8">
@@ -1101,7 +1240,7 @@ const Navbar = () => {
           />
           <div className="hidden sm:block min-w-0">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-ministry-700">KSEIP</p>
-            <p className="text-xs leading-tight text-slate-950">Kogi Environmental Platform</p>
+            <p className="text-xs leading-tight text-slate-950">{t(language, "brandSubtitle")}</p>
           </div>
         </Link>
 
@@ -1114,7 +1253,7 @@ const Navbar = () => {
                 location.pathname === "/" ? "text-ministry-700" : "text-slate-600"
               }`}
             >
-              Home
+              {t(language, "navHome")}
             </Link>
           </li>
           <li>
@@ -1126,9 +1265,19 @@ const Navbar = () => {
     : "text-slate-600 hover:bg-ministry-50 hover:text-ministry-700"
 }`}
             >
-              About
+              {t(language, "navAbout")}
             </Link>
           </li>
+
+          <li>
+                  <Link
+                    to="/simulator"
+                    onClick={() => setMoreOpen(false)}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-ministry-50"
+                  >
+                    {t(language, "navSimulator")}
+                  </Link>
+                </li>
 
           {/* "More" — click-controlled, not hover */}
           <li ref={moreRef} className="relative">
@@ -1138,7 +1287,7 @@ const Navbar = () => {
               aria-expanded={moreOpen}
               className="rounded-md px-3 py-2 text-slate-600 hover:bg-ministry-50 hover:text-ministry-700"
             >
-              More
+              {t(language, "navMore")}
             </button>
             {moreOpen && (
               <ul className="absolute left-0 top-full mt-2 w-48 rounded-md border border-slate-200 bg-white shadow-lg z-50">
@@ -1148,16 +1297,17 @@ const Navbar = () => {
                     onClick={() => setMoreOpen(false)}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-ministry-50"
                   >
-                    How to Use
+                    {t(language, "navHowToUse")}
                   </Link>
                 </li>
+                
                 <li>
                   <Link
                     to="/documentation"
                     onClick={() => setMoreOpen(false)}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-ministry-50"
                   >
-                    Documentation
+                    {t(language, "navDocumentation")}
                   </Link>
                 </li>
               </ul>
@@ -1169,8 +1319,21 @@ const Navbar = () => {
               to="/dashboard"
               className="inline-flex h-10 items-center justify-center rounded-md bg-ministry-700 px-4 text-sm text-white hover:bg-ministry-900"
             >
-              Dashboard
+              {t(language, "navDashboard")}
             </Link>
+          </li>
+          <li>
+            <label className="sr-only" htmlFor="language-select-desktop">{t(language, "language")}</label>
+            <select
+              className="h-10 rounded-md border border-ministry-100 bg-white px-2 text-xs font-bold text-slate-700 outline-none focus:border-leaf-600"
+              id="language-select-desktop"
+              onChange={(event) => onLanguageChange(event.target.value)}
+              value={language}
+            >
+              {LANGUAGES.map((item) => (
+                <option key={item.code} value={item.code}>{item.label}</option>
+              ))}
+            </select>
           </li>
         </ul>
 
@@ -1201,7 +1364,7 @@ const Navbar = () => {
                 location.pathname === "/" ? "text-ministry-700" : "text-slate-600"
               }`}
             >
-              Home
+              {t(language, "navHome")}
             </Link>
           </li>
           <li>
@@ -1212,7 +1375,7 @@ const Navbar = () => {
                 location.pathname === "/about" ? "text-ministry-700" : "text-slate-600"
               }`}
             >
-              About
+              {t(language, "navAbout")}
             </Link>
           </li>
           <li>
@@ -1221,7 +1384,16 @@ const Navbar = () => {
               onClick={closeMobileMenu}
               className="block rounded-md px-3 py-2 text-slate-600 hover:bg-ministry-50 hover:text-ministry-700"
             >
-              How to Use
+              {t(language, "navHowToUse")}
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/simulator"
+              onClick={closeMobileMenu}
+              className="block rounded-md px-3 py-2 text-slate-600 hover:bg-ministry-50 hover:text-ministry-700"
+            >
+              {t(language, "navSimulator")}
             </Link>
           </li>
           <li>
@@ -1230,7 +1402,7 @@ const Navbar = () => {
               onClick={closeMobileMenu}
               className="block rounded-md px-3 py-2 text-slate-600 hover:bg-ministry-50 hover:text-ministry-700"
             >
-              Documentation
+              {t(language, "navDocumentation")}
             </Link>
           </li>
           <li className="mt-2 mb-1">
@@ -1239,8 +1411,23 @@ const Navbar = () => {
               onClick={closeMobileMenu}
               className="flex h-10 items-center justify-center rounded-md bg-ministry-700 px-4 text-white hover:bg-ministry-900"
             >
-              Dashboard
+              {t(language, "navDashboard")}
             </Link>
+          </li>
+          <li className="mb-2">
+            <label className="mb-1 block px-3 text-xs font-black uppercase tracking-wide text-slate-500" htmlFor="language-select-mobile">
+              {t(language, "language")}
+            </label>
+            <select
+              className="mx-3 h-10 w-[calc(100%-1.5rem)] rounded-md border border-ministry-100 bg-white px-3 text-sm font-bold text-slate-700 outline-none focus:border-leaf-600"
+              id="language-select-mobile"
+              onChange={(event) => onLanguageChange(event.target.value)}
+              value={language}
+            >
+              {LANGUAGES.map((item) => (
+                <option key={item.code} value={item.code}>{item.label}</option>
+              ))}
+            </select>
           </li>
         </ul>
       </div>
@@ -1284,21 +1471,136 @@ const Footer = () => (
   </footer>
 );
 
+const InstallAppPrompt = () => {
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [visible, setVisible] = useState(false);
+  const [isIosPrompt, setIsIosPrompt] = useState(false);
+  const storageKey = "kseip-install-prompt-dismissed";
+
+  useEffect(() => {
+    const dismissed = localStorage.getItem(storageKey) === "1";
+    const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+    const userAgent = window.navigator.userAgent || "";
+    const iosDevice = /iphone|ipad|ipod/i.test(userAgent);
+
+    if (standalone || dismissed) return undefined;
+
+    if (iosDevice) {
+      setIsIosPrompt(true);
+      setVisible(true);
+    }
+
+    const handleBeforeInstallPrompt = (event) => {
+      event.preventDefault();
+      setDeferredPrompt(event);
+      setIsIosPrompt(false);
+      setVisible(true);
+    };
+
+    const handleInstalled = () => {
+      setDeferredPrompt(null);
+      setVisible(false);
+      localStorage.setItem(storageKey, "1");
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleInstalled);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleInstalled);
+    };
+  }, []);
+
+  const dismiss = () => {
+    localStorage.setItem(storageKey, "1");
+    setVisible(false);
+  };
+
+  const installApp = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    setDeferredPrompt(null);
+    setVisible(false);
+  };
+
+  if (!visible) return null;
+
+  return (
+    <div className="fixed inset-x-3 bottom-3 z-[70] mx-auto max-w-xl rounded-lg border border-ministry-100 bg-white p-3 shadow-2xl sm:bottom-5 sm:p-4" role="status">
+      <div className="flex gap-3">
+        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-ministry-700 text-white">
+          <Smartphone size={20} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-black text-slate-950">Install KSEIP</p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-slate-600">
+            {isIosPrompt
+              ? "On iPhone, open Share, then choose Add to Home Screen."
+              : "Add KSEIP to your phone for quick dashboard access."}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {isIosPrompt ? null : (
+              <button
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-ministry-700 px-3 text-xs font-black text-white hover:bg-ministry-900"
+                onClick={installApp}
+                type="button"
+              >
+                <Download size={14} />
+                Install
+              </button>
+            )}
+            <button
+              className="inline-flex h-9 items-center justify-center rounded-md border border-ministry-100 bg-white px-3 text-xs font-black text-ministry-700 hover:bg-ministry-50"
+              onClick={dismiss}
+              type="button"
+            >
+              Later
+            </button>
+          </div>
+        </div>
+        <button
+          aria-label="Dismiss install prompt"
+          className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+          onClick={dismiss}
+          type="button"
+        >
+          <X size={16} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export default function App() {
+  const searchParams = new URLSearchParams(window.location.search);
+  const isEmbed = searchParams.get("embed") === "1";
+  const initialLanguage = searchParams.get("lang") || localStorage.getItem("kseip-language") || "en";
+  const [language, setLanguage] = useState(() => initialLanguage);
+
+  const handleLanguageChange = (nextLanguage) => {
+    const supported = LANGUAGES.some((item) => item.code === nextLanguage) ? nextLanguage : "en";
+    setLanguage(supported);
+    localStorage.setItem("kseip-language", supported);
+  };
+
   return (
     <Router>
       <div className="App min-h-screen flex flex-col w-full">
-        <Navbar />
+        {isEmbed ? null : <Navbar language={language} onLanguageChange={handleLanguageChange} />}
         <main className="flex-grow w-full">
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/how-to-use" element={<HowToUsePage />} />
             <Route path="/documentation" element={<DocumentationPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/dashboard" element={<DashboardPage language={language} />} />
+            <Route path="/simulator" element={<SimulatorPage />} />
           </Routes>
         </main>
-        <Footer />
+        {isEmbed ? null : <Footer />}
+        {isEmbed ? null : <InstallAppPrompt />}
       </div>
     </Router>
   );

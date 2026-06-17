@@ -1,4 +1,4 @@
-import { Download, Loader2 } from "lucide-react";
+import { Download } from "lucide-react";
 import { jsPDF } from "jspdf";
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -20,6 +20,7 @@ import {
   YAxis
 } from "recharts";
 import { getClimateTrend } from "../../services/apiClient.js";
+import { t } from "../../services/i18n.js";
 
 const PARAMS = ["T2M", "PRECTOTCORR", "WS10M", "ALLSKY_SFC_SW_DWN"];
 
@@ -83,7 +84,24 @@ function ErrorPanel({ error, onRetry }) {
   );
 }
 
-export default function ClimateTrendViewer() {
+function ClimateSkeleton({ label }) {
+  return (
+    <div className="mt-4 grid gap-3" aria-label={label}>
+      <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        {[0, 1, 2, 3].map((item) => (
+          <div className="h-20 animate-pulse rounded-lg bg-slate-200" key={item} />
+        ))}
+      </div>
+      <div className="grid gap-3 md:grid-cols-2">
+        {[0, 1, 2, 3].map((item) => (
+          <div className="h-56 animate-pulse rounded-lg bg-slate-200" key={item} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function ClimateTrendViewer({ language = "en" }) {
   const [series, setSeries] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -133,7 +151,7 @@ export default function ClimateTrendViewer() {
       <div className="flex flex-col gap-2 sm:gap-3">
         <div className="w-full">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-leaf-600">Climate Trend Viewer</p>
-          <h2 className="mt-1 text-xl sm:text-2xl md:text-3xl font-bold text-slate-950">30-year Kogi climate baseline</h2>
+          <h2 className="mt-1 text-xl sm:text-2xl md:text-3xl font-bold text-slate-950">{t(language, "climateTitle")}</h2>
         </div>
         <button
           className="inline-flex h-9 sm:h-10 items-center justify-center gap-2 rounded-md bg-ministry-500 px-3 sm:px-4 text-xs sm:text-sm font-bold text-white disabled:opacity-60 w-full sm:w-auto"
@@ -147,10 +165,7 @@ export default function ClimateTrendViewer() {
       </div>
 
       {loading ? (
-        <div className="mt-4 flex min-h-[150px] items-center justify-center rounded-lg bg-ministry-50 text-ministry-700">
-          <Loader2 className="mr-2 animate-spin" size={16} />
-          <span>Loading NASA POWER climate trends</span>
-        </div>
+        <ClimateSkeleton label={t(language, "loadingClimate")} />
       ) : null}
 
       {error ? <div className="mt-3"><ErrorPanel error={error} onRetry={loadClimate} /></div> : null}

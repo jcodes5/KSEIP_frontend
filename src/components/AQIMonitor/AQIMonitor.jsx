@@ -1,4 +1,5 @@
-import { AlertTriangle, RefreshCw, TrendingDown, TrendingUp, Wind, Activity, Zap, Eye } from "lucide-react";
+import { AlertTriangle, Download, FileText, RefreshCw, TrendingDown, TrendingUp, Wind, Activity, Zap, Eye } from "lucide-react";
+import { jsPDF } from "jspdf";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   CartesianGrid,
@@ -11,12 +12,16 @@ import {
   YAxis
 } from "recharts";
 import { EPA_AQI_BANDS, formatDateTime, getAqiBand, isStale } from "../../services/aqiScale.js";
+import { downloadAqiHistoryExport } from "../../services/apiClient.js";
+import { t } from "../../services/i18n.js";
 
 const LOCATIONS = [
   { id: "lokoja", label: "Lokoja" },
   { id: "obajana", label: "Obajana" },
   { id: "okene", label: "Okene" },
   { id: "anyigba", label: "Anyigba" },
+  { id: "kabba", label: "Kabba" },
+  { id: "idah", label: "Idah" },
   { id: "nearest", label: "Nearest observed station" }
 ];
 
@@ -65,6 +70,24 @@ function PollutantCard({ label, unit, value, icon: Icon }) {
   );
 }
 
+function SkeletonBlock({ className = "" }) {
+  return <div className={`animate-pulse rounded-md bg-slate-200 ${className}`} />;
+}
+
+function AQISkeleton() {
+  return (
+    <div className="grid gap-3">
+      <SkeletonBlock className="h-44" />
+      <div className="grid gap-3 sm:grid-cols-3">
+        <SkeletonBlock className="h-24" />
+        <SkeletonBlock className="h-24" />
+        <SkeletonBlock className="h-24" />
+      </div>
+      <SkeletonBlock className="h-56" />
+    </div>
+  );
+}
+
 // function AQIGauge({ value, band, loading }) {
 //   const percentage = Math.min((value / 300) * 100, 100) || 0;
   
@@ -104,7 +127,8 @@ function TrendIndicator({ current, previous }) {
 }
 
 function LocationInfo({ location, aqi, band, currentData, loading }) {
-  const locationName = currentData?.location || LOCATIONS.find((item) => item.id === location)?.label;
+  const selectedLocation = LOCATIONS.find((item) => item.id === location);
+  const locationName = currentData?.location_id === location ? currentData?.location : selectedLocation?.label;
   
   return (
     <div className="space-y-4 rounded-lg p-4 sm:p-6 min-w-0" style={{ backgroundColor: band.color, color: band.textColor }}>
@@ -150,10 +174,35 @@ function LocationInfo({ location, aqi, band, currentData, loading }) {
 
 function trendData(history) {
   return (history?.timeseries ?? []).map((point) => ({
-    time: new Intl.DateTimeFormat("en-NG", { hour: "2-digit", minute: "2-digit" }).format(new Date(point.timestamp)),
+    time: new Intl.DateTimeFormat("en-NG", { month: "short", day: "numeric", hour: "2-digit" }).format(new Date(point.timestamp)),
     aqi: point.aqi,
-    pm25: point.pm25
+    pm25: point.pm25,
+    pm10: point.pm10
   }));
+}
+
+function exportAqiPdf({ current, history, location }) {
+  const doc = new jsPDF();
+  const rows = history?.timeseries ?? [];
+  const avgAqi = rows.length ? Math.round(rows.reduce((sum, row) => sum + Number(row.aqi || 0), 0) / rows.length) : "--";
+  const avgPm25 = rows.length ? (rows.reduce((sum, row) => sum + Number(row.pm25 || 0), 0) / rows.length).toFixed(2) : "--";
+  const avgPm10 = rows.length ? (rows.reduce((sum, row) => sum + Number(row.pm10 || 0), 0) / rows.length).toFixed(2) : "--";
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("KSEIP AQI Panel Report", 18, 20);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  const selectedLocation = LOCATIONS.find((item) => item.id === location);
+  const locationName = current?.location_id === location ? current?.location : selectedLocation?.label;
+  doc.text(`Location: ${locationName || location}`, 18, 36);
+  doc.text(`Current AQI: ${current?.aqi ?? "--"}`, 18, 46);
+  doc.text(`Dominant pollutant: ${current?.dominant_pollutant ?? "--"}`, 18, 56);
+  doc.text(`7-day average AQI: ${avgAqi}`, 18, 66);
+  doc.text(`7-day average PM2.5: ${avgPm25} ug/m3`, 18, 76);
+  doc.text(`7-day average PM10: ${avgPm10} ug/m3`, 18, 86);
+  doc.text(`Generated: ${new Date().toLocaleString("en-NG")}`, 18, 100);
+  doc.save(`kseip-aqi-${location}.pdf`);
 }
 
 export default function AQIMonitor({
@@ -161,6 +210,7 @@ export default function AQIMonitor({
   onLocationChange,
   current,
   history,
+  language = "en",
   loading,
   error,
   onRetry
@@ -169,10 +219,24 @@ export default function AQIMonitor({
   const band = getAqiBand(current?.aqi);
   const stale = isStale(current?.timestamp, current?.stale);
   const chartData = useMemo(() => trendData(history), [history]);
+  const [exportError, setExportError] = useState(null);
+  const [exportingFormat, setExportingFormat] = useState(null);
   
   // Calculate average from history for trend
   const avgAqi = chartData.length > 0 ? Math.round(chartData.reduce((sum, d) => sum + d.aqi, 0) / chartData.length) : null;
   const firstAqi = chartData.length > 0 ? chartData[0].aqi : null;
+
+  const handleHistoryExport = async (format) => {
+    setExportError(null);
+    setExportingFormat(format);
+    try {
+      await downloadAqiHistoryExport(location, 168, format);
+    } catch (downloadError) {
+      setExportError(downloadError);
+    } finally {
+      setExportingFormat(null);
+    }
+  };
 
   return (
     <section className="rounded-lg border border-ministry-100 bg-white p-2 sm:p-3 md:p-4 shadow-panel space-y-3 sm:space-y-4" id="aqi">
@@ -180,14 +244,14 @@ export default function AQIMonitor({
       <div className="flex flex-col gap-3 sm:gap-4">
         <div className="w-full">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-leaf-600">AQI Monitor</p>
-          <h1 className="mt-1 text-xl sm:text-2xl md:text-3xl font-bold text-slate-950">Kogi Air Quality</h1>
-          <p className="mt-1 text-xs sm:text-sm text-slate-600">Real-time air quality monitoring for Kogi State</p>
+          <h1 className="mt-1 text-xl sm:text-2xl md:text-3xl font-bold text-slate-950">{t(language, "aqiTitle")}</h1>
+          <p className="mt-1 text-xs sm:text-sm text-slate-600">{t(language, "aqiSubtitle")}</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-start sm:items-center">
           {stale && current ? (
             <span className="inline-flex h-9 sm:h-10 items-center gap-2 rounded-md border border-yellow-300 bg-yellow-100 px-2 sm:px-3 text-xs sm:text-sm font-semibold text-yellow-900">
               <AlertTriangle size={14} />
-              <span>Stale data</span>
+              <span>{t(language, "staleData")}</span>
             </span>
           ) : null}
           <select
@@ -201,10 +265,41 @@ export default function AQIMonitor({
               </option>
             ))}
           </select>
+          <div className="grid w-full grid-cols-3 gap-2 sm:w-auto">
+            <button
+              className="inline-flex h-9 items-center justify-center gap-1 rounded-md border border-ministry-100 bg-white px-2 text-[10px] font-black uppercase text-ministry-700 hover:bg-ministry-50 sm:h-10 sm:text-xs"
+              onClick={() => exportAqiPdf({ current, history, location })}
+              type="button"
+            >
+              <FileText size={14} />
+              PDF
+            </button>
+            <button
+              className="inline-flex h-9 items-center justify-center gap-1 rounded-md border border-ministry-100 bg-white px-2 text-[10px] font-black uppercase text-ministry-700 hover:bg-ministry-50 sm:h-10 sm:text-xs"
+              disabled={exportingFormat === "csv"}
+              onClick={() => handleHistoryExport("csv")}
+              type="button"
+            >
+              <Download size={14} />
+              {exportingFormat === "csv" ? "..." : "CSV"}
+            </button>
+            <button
+              className="inline-flex h-9 items-center justify-center gap-1 rounded-md border border-ministry-100 bg-white px-2 text-[10px] font-black uppercase text-ministry-700 hover:bg-ministry-50 sm:h-10 sm:text-xs"
+              disabled={exportingFormat === "geojson"}
+              onClick={() => handleHistoryExport("geojson")}
+              type="button"
+            >
+              <Download size={14} />
+              {exportingFormat === "geojson" ? "..." : "GeoJSON"}
+            </button>
+          </div>
         </div>
       </div>
 
       {error ? <ErrorPanel error={error} onRetry={onRetry} /> : null}
+      {exportError ? <ErrorPanel error={exportError} onRetry={() => handleHistoryExport("csv")} /> : null}
+
+      {loading && !current ? <AQISkeleton /> : null}
 
       {!error ? (
         <>
@@ -220,7 +315,7 @@ export default function AQIMonitor({
               {/* Trend Chart */}
               <div className="rounded-lg border border-ministry-100 bg-ministry-50 p-3">
                 <div className="mb-2 sm:mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <p className="font-semibold text-slate-900 text-sm sm:text-base">24-Hour Trend</p>
+                  <p className="font-semibold text-slate-900 text-sm sm:text-base">{t(language, "aqiTrend")}</p>
                   {firstAqi && current?.aqi && (
                     <TrendIndicator current={current.aqi} previous={firstAqi} />
                   )}
@@ -250,9 +345,31 @@ export default function AQIMonitor({
                 </div>
               </div>
 
+              <div className="rounded-lg border border-ministry-100 bg-white p-3">
+                <div className="mb-2 sm:mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <p className="font-semibold text-slate-900 text-sm sm:text-base">{t(language, "pmTrend")}</p>
+                  <p className="text-xs font-semibold text-slate-500">{t(language, "last7Days")}</p>
+                </div>
+                <div className="h-[170px] sm:h-[220px] md:h-[260px] w-full overflow-hidden rounded-lg">
+                  <ResponsiveContainer>
+                    <LineChart data={chartData} margin={{ top: 10, right: 16, bottom: 0, left: 0 }}>
+                      <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" />
+                      <XAxis dataKey="time" tick={{ fontSize: 10, angle: -45, textAnchor: "end" }} minTickGap={20} />
+                      <YAxis tick={{ fontSize: 10 }} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "rgba(255,255,255,0.96)", border: "1px solid #e5e7eb", borderRadius: "8px" }}
+                        formatter={(value, name) => [`${value} ug/m3`, name === "pm25" ? "PM2.5" : "PM10"]}
+                      />
+                      <Line dataKey="pm25" dot={false} isAnimationActive={false} stroke="#2563eb" strokeWidth={2} type="monotone" />
+                      <Line dataKey="pm10" dot={false} isAnimationActive={false} stroke="#f97316" strokeWidth={2} type="monotone" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
               {/* Pollutants Grid */}
               <div>
-                <p className="mb-2 sm:mb-3 font-semibold text-slate-900 text-sm sm:text-base">Pollutant Levels</p>
+                <p className="mb-2 sm:mb-3 font-semibold text-slate-900 text-sm sm:text-base">{t(language, "pollutantLevels")}</p>
                 <div className="grid gap-2 sm:gap-3 grid-cols-2 xs:grid-cols-2 sm:grid-cols-3">
                   <PollutantCard label="PM2.5" unit="µg/m³" value={current?.pm25} icon={Wind} />
                   <PollutantCard label="PM10" unit="µg/m³" value={current?.pm10} icon={Activity} />
@@ -268,7 +385,7 @@ export default function AQIMonitor({
           {/* Info Footer */}
           <div className="border-t pt-3 text-xs text-slate-600 space-y-1">
             <p><strong>Data Source:</strong> Open-Meteo Air Quality (Primary), WAQI/OpenAQ (Validation)</p>
-            <p><strong>Update Frequency:</strong> Every 1 hour | <strong>Coverage:</strong> Kogi State and surrounding areas</p>
+            <p><strong>Update Frequency:</strong> Per-node polling interval | <strong>Coverage:</strong> Lokoja, Obajana, Okene, Anyigba, Kabba, Idah, and nearest observed station</p>
           </div>
         </>
       ) : null}

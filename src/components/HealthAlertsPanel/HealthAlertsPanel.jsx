@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Activity, Briefcase, GraduationCap, HeartPulse, Sprout, ChevronDown, ChevronUp, AlertCircle, Shield, Droplets, Home, Wind, Clock } from "lucide-react";
 import { EPA_AQI_BANDS, formatDateTime } from "../../services/aqiScale.js";
+import { t } from "../../services/i18n.js";
 
 const ACTIVITY_ICONS = {
   exercise: Activity,
@@ -134,7 +135,7 @@ function RiskGroup({ group }) {
   );
 }
 
-export default function HealthAlertsPanel({ advisory, aqiCurrent, loading }) {
+export default function HealthAlertsPanel({ advisory, aqiCurrent, language = "en", loading }) {
   const [activeTab, setActiveTab] = useState("overview");
   const band = EPA_AQI_BANDS.find((item) => item.level === advisory?.level) || EPA_AQI_BANDS[0];
   const forecastBand = EPA_AQI_BANDS.find((item) => item.level === advisory?.forecast_level) || band;
@@ -153,7 +154,7 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, loading }) {
       <div className="flex flex-col gap-2">
         <div className="w-full">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-leaf-600">Health Alerts</p>
-          <h2 className="mt-1 text-xl sm:text-2xl font-bold text-slate-950">Public Advisory</h2>
+          <h2 className="mt-1 text-xl sm:text-2xl font-bold text-slate-950">{t(language, "healthTitle")}</h2>
         </div>
         <div className="rounded-md border border-ministry-100 bg-ministry-50 px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-ministry-700 w-full sm:w-auto text-center">
           Forecast: {forecastBand.category}

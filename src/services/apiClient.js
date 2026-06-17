@@ -30,8 +30,54 @@ export function getCurrentAqi(location = "lokoja") {
   return request(`/api/aqi/current?location=${encodeURIComponent(location)}`);
 }
 
-export function getAqiHistory(location = "lokoja", hours = 24) {
+export function getAqiHistory(location = "lokoja", hours = 168) {
   return request(`/api/aqi/history?location=${encodeURIComponent(location)}&hours=${hours}`);
+}
+
+export function getAqiHistoryExportUrl(location = "lokoja", hours = 168, format = "csv") {
+  return `${API_BASE_URL}/api/aqi/history/export?location=${encodeURIComponent(location)}&hours=${hours}&format=${encodeURIComponent(format)}`;
+}
+
+export async function downloadAqiHistoryExport(location = "lokoja", hours = 168, format = "csv") {
+  const params = `location=${encodeURIComponent(location)}&hours=${hours}&format=${encodeURIComponent(format)}`;
+  const response = await fetch(`${API_BASE_URL}/api/aqi/history/export?${params}`, {
+    headers: { accept: format === "geojson" ? "application/geo+json" : "text/csv" }
+  });
+
+  if (!response.ok) {
+    let payload = null;
+    try {
+      payload = await response.json();
+    } catch {
+      payload = null;
+    }
+
+    const error = new Error(
+      response.status === 404
+        ? "AQI export endpoint was not found. Restart the backend so the latest export route is active."
+        : payload?.message || `AQI export failed with status ${response.status}.`
+    );
+    error.code = payload?.code || "AQI_EXPORT_FAILED";
+    error.status = response.status;
+    throw error;
+  }
+
+  const blob = await response.blob();
+  const contentDisposition = response.headers.get("content-disposition") ?? "";
+  const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/i);
+  const filename = filenameMatch?.[1] ?? `kseip-aqi-${location}.${format === "geojson" ? "geojson" : "csv"}`;
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(objectUrl);
+}
+
+export function getAqiLocations() {
+  return request("/api/aqi/locations");
 }
 
 export function getHealthAdvisory(location = "lokoja") {
@@ -40,6 +86,10 @@ export function getHealthAdvisory(location = "lokoja") {
 
 export function getCurrentMeteo() {
   return request("/api/meteo/current");
+}
+
+export function getMeteoForecast(hours = 12) {
+  return request(`/api/meteo/forecast?hours=${hours}`);
 }
 
 export function runPlumeSimulation(payload) {
@@ -57,8 +107,12 @@ export function getFireHotspots(days = 5) {
   return request(`/api/fire/hotspots?days=${days}`);
 }
 
-export function getFloodRisk() {
-  return request("/api/flood/risk");
+export function getFloodRisk(location = "lokoja") {
+  return request(`/api/flood/risk?location=${encodeURIComponent(location)}`);
+}
+
+export function getFloodLocations() {
+  return request("/api/flood/locations");
 }
 
 export const apiConfig = {
