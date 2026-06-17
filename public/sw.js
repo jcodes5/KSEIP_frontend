@@ -24,10 +24,17 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
-  if (request.method !== "GET") return;
+  if (request.method !== "GET") {
+    return; // Exit early for non-GET requests
+  }
 
   const url = new URL(request.url);
-  if (url.pathname.startsWith("/api/")) return;
+  
+  // Handle API requests by fetching directly from the network
+  if (url.pathname.startsWith("/api/")) {
+    event.respondWith(fetch(request));
+    return;
+  }
 
   if (request.mode === "navigate") {
     event.respondWith(fetch(request).catch(() => caches.match("/")));
