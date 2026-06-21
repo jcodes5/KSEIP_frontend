@@ -22,17 +22,17 @@ function ActivityCard({ name, value, details }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="rounded-lg border border-ministry-100 bg-white p-4">
+    <div className="rounded-lg border border-ministry-100 bg-white p-3 sm:p-4">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between gap-3 text-left"
+        className="flex w-full items-start justify-between gap-3 text-left"
       >
-        <div className="flex items-center gap-3 flex-1">
-          <span className="flex h-10 w-10 items-center justify-center rounded-md bg-ministry-50 text-ministry-700 flex-shrink-0">
+        <div className="flex min-w-0 flex-1 items-start gap-3">
+          <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-ministry-50 text-ministry-700 sm:h-10 sm:w-10">
             <Icon size={20} />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-slate-900">{ACTIVITY_LABELS[name] || name}</p>
+            <p className="break-words text-sm font-bold text-slate-900">{ACTIVITY_LABELS[name] || name}</p>
             <p className="mt-1 text-sm capitalize text-slate-600">{details?.status || value}</p>
           </div>
         </div>
@@ -78,16 +78,16 @@ function ExpandableSection({ title, icon: Icon, children, defaultOpen = false })
   const [expanded, setExpanded] = useState(defaultOpen);
 
   return (
-    <div className="rounded-lg border border-ministry-100 bg-white overflow-hidden">
+    <div className="overflow-hidden rounded-lg border border-ministry-100 bg-white">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-3 p-4 hover:bg-ministry-50 transition-colors"
+        className="flex w-full items-start gap-3 p-3 transition-colors hover:bg-ministry-50 sm:p-4"
       >
         <Icon size={20} className="text-ministry-700 flex-shrink-0" />
-        <span className="font-semibold text-slate-900 flex-1 text-left">{title}</span>
+        <span className="min-w-0 flex-1 break-words text-left text-sm font-semibold text-slate-900 sm:text-base">{title}</span>
         {expanded ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
       </button>
-      {expanded && <div className="border-t border-ministry-100 p-4 space-y-3">{children}</div>}
+      {expanded && <div className="space-y-3 border-t border-ministry-100 p-3 sm:p-4">{children}</div>}
     </div>
   );
 }
@@ -110,17 +110,17 @@ function RiskGroup({ group }) {
   };
 
   return (
-    <div className="border border-slate-200 rounded-lg overflow-hidden">
+    <div className="overflow-hidden rounded-lg border border-slate-200">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full p-3 flex items-start justify-between gap-3 hover:bg-slate-50 transition-colors"
+        className="flex w-full flex-col gap-3 p-3 text-left transition-colors hover:bg-slate-50 xs:flex-row xs:items-start xs:justify-between"
       >
-        <div className="flex-1 text-left">
-          <p className="font-semibold text-slate-900">{group.name}</p>
+        <div className="min-w-0 flex-1">
+          <p className="break-words font-semibold text-slate-900">{group.name}</p>
           <p className="text-sm text-slate-600 mt-1">{group.description}</p>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <span className={`text-xs font-semibold px-2 py-1 rounded whitespace-nowrap ${riskColors[group.risk_level] || "bg-gray-100 text-gray-800"}`}>
+        <div className="flex w-full flex-shrink-0 items-center justify-between gap-2 xs:w-auto xs:justify-end">
+          <span className={`max-w-[13rem] rounded px-2 py-1 text-left text-xs font-semibold ${riskColors[group.risk_level] || "bg-gray-100 text-gray-800"}`}>
             {group.risk_level}
           </span>
           {expanded ? <ChevronUp size={18} className="text-slate-400" /> : <ChevronDown size={18} className="text-slate-400" />}
@@ -149,14 +149,14 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, language = "en
   ];
 
   return (
-    <section className="rounded-lg border border-ministry-100 bg-white p-2 sm:p-3 md:p-4 shadow-panel space-y-3 sm:space-y-4" id="health">
+    <section className="space-y-3 rounded-lg border border-ministry-100 bg-white p-3 shadow-panel sm:space-y-4 sm:p-4" id="health">
       {/* Header */}
       <div className="flex flex-col gap-2">
         <div className="w-full">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-leaf-600">Health Alerts</p>
           <h2 className="mt-1 text-xl sm:text-2xl font-bold text-slate-950">{t(language, "healthTitle")}</h2>
         </div>
-        <div className="rounded-md border border-ministry-100 bg-ministry-50 px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-ministry-700 w-full sm:w-auto text-center">
+        <div className="w-full rounded-md border border-ministry-100 bg-ministry-50 px-2 py-2 text-center text-xs font-semibold text-ministry-700 sm:w-auto sm:px-3 sm:text-sm">
           Forecast: {forecastBand.category}
         </div>
       </div>
@@ -172,7 +172,7 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, language = "en
         <div className="flex flex-col gap-3">
           <div>
             <p className="text-xs sm:text-sm font-bold uppercase tracking-wide opacity-85">{loading && !advisory ? "Loading" : advisory?.category}</p>
-            <p className="mt-2 max-w-full text-lg sm:text-xl font-black leading-snug text-wrap break-words">{advisory?.advisory_text}</p>
+            <p className="mt-2 max-w-full break-words text-base font-black leading-snug sm:text-xl">{advisory?.advisory_text}</p>
             {advisory?.health_statement && <p className="mt-2 max-w-full text-xs sm:text-sm font-semibold opacity-85 break-words">{advisory.health_statement}</p>}
             {advisory?.sensitive_groups_text && <p className="mt-1 max-w-full text-xs sm:text-sm opacity-85 break-words">{advisory.sensitive_groups_text}</p>}
           </div>
@@ -200,6 +200,31 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, language = "en
       {/* Tab Content */}
       {activeTab === "overview" && (
         <div className="space-y-3">
+          {(advisory?.action_priority || advisory?.pollutant_guidance || advisory?.data_quality) && (
+            <div className="grid gap-2 md:grid-cols-3">
+              {advisory?.action_priority ? (
+                <div className="rounded-lg border border-ministry-100 bg-ministry-50 p-3">
+                  <p className="text-xs font-black uppercase tracking-wide text-ministry-700">Priority Action</p>
+                  <p className="mt-1 text-sm font-semibold leading-5 text-slate-800">{advisory.action_priority}</p>
+                </div>
+              ) : null}
+              {advisory?.pollutant_guidance ? (
+                <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                  <p className="text-xs font-black uppercase tracking-wide text-blue-800">Dominant Pollutant</p>
+                  <p className="mt-1 text-sm font-black text-blue-950">{advisory.pollutant_guidance.pollutant}</p>
+                  <p className="mt-1 text-sm font-semibold leading-5 text-blue-900">{advisory.pollutant_guidance.guidance}</p>
+                </div>
+              ) : null}
+              {advisory?.data_quality ? (
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-xs font-black uppercase tracking-wide text-slate-600">Data Confidence</p>
+                  <p className="mt-1 text-sm font-black capitalize text-slate-950">{advisory.data_quality.confidence}</p>
+                  <p className="mt-1 text-sm font-semibold leading-5 text-slate-700">{advisory.data_quality.note}</p>
+                </div>
+              ) : null}
+            </div>
+          )}
+
           {/* AQI Range */}
           {advisory?.aqi_range && (
             <div className="bg-ministry-50 rounded-lg p-3">
@@ -259,7 +284,7 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, language = "en
                   <ul className="mt-2 space-y-1">
                     {advisory.symptoms_to_watch.map((symptom, idx) => (
                       <li key={idx} className="text-xs sm:text-sm text-red-800 flex gap-2">
-                        <span className="text-red-600 mt-0.5">•</span>
+                        <span className="text-red-600 mt-0.5">-</span>
                         <span>{symptom}</span>
                       </li>
                     ))}
@@ -293,7 +318,7 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, language = "en
                   <ul className="space-y-1">
                     {advisory.protective_measures.outdoor.map((measure, idx) => (
                       <li key={idx} className="flex gap-1 text-xs sm:text-sm text-slate-700">
-                        <span className="text-ministry-600 mt-0.5">✓</span>
+                        <span className="text-ministry-600 mt-0.5">-</span>
                         <span>{measure}</span>
                       </li>
                     ))}
@@ -302,11 +327,11 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, language = "en
               )}
 
               {advisory.protective_measures.indoor && (
-                <ExpandableSection title="Indoor Protection" icon={Home} defaultOpen={true}>
+                <ExpandableSection title="Indoor Protection" icon={Home}>
                   <ul className="space-y-1">
                     {advisory.protective_measures.indoor.map((measure, idx) => (
                       <li key={idx} className="flex gap-1 text-xs sm:text-sm text-slate-700">
-                        <span className="text-ministry-600 mt-0.5">✓</span>
+                        <span className="text-ministry-600 mt-0.5">-</span>
                         <span>{measure}</span>
                       </li>
                     ))}
@@ -315,11 +340,11 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, language = "en
               )}
 
               {advisory.protective_measures.personal_protection && (
-                <ExpandableSection title="Personal Protection" icon={Shield} defaultOpen={true}>
+                <ExpandableSection title="Personal Protection" icon={Shield}>
                   <ul className="space-y-1">
                     {advisory.protective_measures.personal_protection.map((measure, idx) => (
                       <li key={idx} className="flex gap-1 text-xs sm:text-sm text-slate-700">
-                        <span className="text-ministry-600 mt-0.5">✓</span>
+                        <span className="text-ministry-600 mt-0.5">-</span>
                         <span>{measure}</span>
                       </li>
                     ))}
@@ -328,11 +353,11 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, language = "en
               )}
 
               {advisory.protective_measures.medication && (
-                <ExpandableSection title="Medication & Health" icon={HeartPulse} defaultOpen={true}>
+                <ExpandableSection title="Medication & Health" icon={HeartPulse}>
                   <ul className="space-y-1">
                     {advisory.protective_measures.medication.map((measure, idx) => (
                       <li key={idx} className="flex gap-1 text-xs sm:text-sm text-slate-700">
-                        <span className="text-ministry-600 mt-0.5">✓</span>
+                        <span className="text-ministry-600 mt-0.5">-</span>
                         <span>{measure}</span>
                       </li>
                     ))}
@@ -348,7 +373,7 @@ export default function HealthAlertsPanel({ advisory, aqiCurrent, language = "en
               <ul className="space-y-1">
                 {advisory.indoor_air_measures.map((measure, idx) => (
                   <li key={idx} className="flex gap-1 text-xs sm:text-sm text-slate-700">
-                    <span className="text-ministry-600 mt-0.5">✓</span>
+                    <span className="text-ministry-600 mt-0.5">-</span>
                     <span>{measure}</span>
                   </li>
                 ))}

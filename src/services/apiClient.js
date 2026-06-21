@@ -123,6 +123,26 @@ export function getFloodLocations() {
   return request("/api/flood/locations");
 }
 
+export function getWeatherLgas() {
+  return request("/api/weather/lgas");
+}
+
+export function getCurrentWeather(lga = "lokoja", refresh = false) {
+  return request(`/api/weather/current?lga=${encodeURIComponent(lga)}${refresh ? "&refresh=true" : ""}`);
+}
+
+export function getWeatherForecast(lga = "lokoja", days = 7, refresh = false) {
+  return request(`/api/weather/forecast?lga=${encodeURIComponent(lga)}&days=${days}${refresh ? "&refresh=true" : ""}`);
+}
+
+export function getWeatherIntelligence(lga = "lokoja", refresh = false) {
+  return request(`/api/weather/intelligence?lga=${encodeURIComponent(lga)}${refresh ? "&refresh=true" : ""}`);
+}
+
+export function getWeatherMap(refresh = false) {
+  return request(`/api/weather/map${refresh ? "?refresh=true" : ""}`);
+}
+
 export const apiConfig = {
   baseUrl: API_BASE_URL
 };

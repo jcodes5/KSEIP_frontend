@@ -458,8 +458,8 @@ function HourlyWindOverrides({ durationHours, hourlyWinds, setHourlyWinds }) {
     <CollapsiblePanel title={`Hourly Wind Overrides (${Object.keys(hourlyWinds).length})`}>
       <div className="max-h-72 overflow-y-auto pr-1">
         {Array.from({ length: durationHours }).map((_, hour) => (
-          <div className="grid grid-cols-[70px_1fr_1fr] items-end gap-2 py-1 text-sm" key={hour}>
-            <span className="pb-2 text-xs font-black uppercase text-slate-500">H{hour + 1}</span>
+          <div className="grid grid-cols-1 gap-2 rounded-md border border-slate-200 bg-white p-2 text-sm xs:grid-cols-[58px_1fr_1fr] xs:items-end xs:border-0 xs:bg-transparent xs:p-0 xs:py-1" key={hour}>
+            <span className="text-xs font-black uppercase text-slate-500 xs:pb-2">H{hour + 1}</span>
             <Field label="Speed">
               <NumericInput min="0.1" onChange={(value) => updateWind(hour, "speed", value)} step="0.1" value={hourlyWinds[hour]?.speed ?? ""} />
             </Field>
@@ -805,7 +805,7 @@ export default function PlumeMapper() {
 
   return (
     <section className="grid min-h-[calc(100vh-4rem)] grid-cols-1 bg-slate-100 text-slate-900 lg:grid-cols-[380px_1fr]">
-      <aside className="z-[500] border-r border-slate-300 bg-white p-4 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto">
+      <aside className="z-[500] border-b border-slate-300 bg-white p-3 sm:p-4 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto lg:border-b-0 lg:border-r">
         <div>
           <h2 className="text-xl font-black uppercase text-ministry-700">Pollution Dispersion</h2>
           <p className="text-sm font-semibold text-slate-600">Kogi State Emission Inventory Platform</p>
@@ -848,7 +848,7 @@ export default function PlumeMapper() {
               </label>
             </div>
             {useCustomLocation ? (
-              <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="mt-3 grid grid-cols-1 gap-2 xs:grid-cols-2">
                 <Field label="Latitude">
                   <NumericInput max="90" min="-90" onChange={(value) => updateCustomLocation("lat", value)} step="0.0001" value={customLocation.lat} />
                 </Field>
@@ -877,7 +877,7 @@ export default function PlumeMapper() {
               ))}
             </div>
             {weatherMode === "manual" ? (
-              <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="mt-3 grid grid-cols-1 gap-2 xs:grid-cols-2">
                 <Field label="Wind speed (m/s)">
                   <NumericInput min="0.1" onChange={(value) => updateField("wind_speed", value)} step="0.1" value={form.wind_speed} />
                 </Field>
@@ -971,7 +971,7 @@ export default function PlumeMapper() {
         </form>
 
         {activeResult ? (
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="mt-4 grid grid-cols-1 gap-2 xs:grid-cols-2">
             <MetricTile label="Cmax" unit="ug/m3" value={formatNumber(activeResult.cmax, 2)} />
             <MetricTile label="xmax" unit="m" value={formatNumber(activeResult.xmax, 0)} />
             <MetricTile label="Mixing height" unit="m" value={formatNumber(diagnostics?.mixing_height_m, 0)} />
@@ -980,8 +980,8 @@ export default function PlumeMapper() {
         ) : null}
       </aside>
 
-      <main className="relative min-h-[900px] lg:min-h-[calc(100vh-4rem)]">
-        <div className="absolute inset-0">
+      <main className="relative min-h-0 lg:min-h-[calc(100vh-4rem)]">
+        <div className="relative h-[420px] sm:h-[520px] lg:absolute lg:inset-0 lg:h-auto">
           <MapContainer center={[7.5, 6.32]} className="h-full w-full" zoom={8} zoomControl={false}>
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -1036,7 +1036,7 @@ export default function PlumeMapper() {
           {activeMeteo ? <WindCompass direction={activeMeteo.wind_dir} /> : null}
         </div>
 
-        <div className="relative z-[700] mt-[420px] max-h-none overflow-y-auto border-t border-slate-300 bg-slate-50/95 p-4 shadow-2xl backdrop-blur lg:absolute lg:inset-x-0 lg:bottom-0 lg:mt-0 lg:max-h-[58vh]">
+        <div className="relative z-[700] max-h-none overflow-y-auto border-t border-slate-300 bg-slate-50/95 p-3 shadow-2xl backdrop-blur sm:p-4 lg:absolute lg:inset-x-0 lg:bottom-0 lg:max-h-[58vh]">
           {activeResult ? (
             <div className="grid gap-4">
               <div className="flex flex-wrap items-center justify-between gap-3">

@@ -9,6 +9,7 @@ import {
   Download,
   FileText,
   Flame,
+  CloudRain,
   MapPinned,
   Radio,
   ShieldCheck,
@@ -17,15 +18,16 @@ import {
   X
 } from "lucide-react";
 import AQIMonitor from "./components/AQIMonitor/AQIMonitor.jsx";
-import ClimateTrendViewer from "./components/ClimateTrendViewer/ClimateTrendViewer.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
-import FireFloodPanel from "./components/FireFloodPanel/FireFloodPanel.jsx";
 import HealthAlertsPanel from "./components/HealthAlertsPanel/HealthAlertsPanel.jsx";
 import { getAqiHistory, getCurrentAqi, getHealthAdvisory } from "./services/apiClient.js";
 import { LANGUAGES, t } from "./services/i18n.js";
 
 // Lazy load PlumeMapper
 const PlumeMapper = lazy(() => import("./components/PlumeMapper/PlumeMapper.jsx"));
+const ClimateTrendViewer = lazy(() => import("./components/ClimateTrendViewer/ClimateTrendViewer.jsx"));
+const FireFloodPanel = lazy(() => import("./components/FireFloodPanel/FireFloodPanel.jsx"));
+const WeatherIntelligence = lazy(() => import("./components/WeatherIntelligence/WeatherIntelligence.jsx"));
 
 // Create components for the new pages
 const FeatureCard = ({ icon, title, description, link }) => (
@@ -1133,12 +1135,16 @@ const DashboardPage = ({ language }) => {
           ) : null}
           {activeSection === "climate" ? (
             <ErrorBoundary title="Climate panel failed">
-              <ClimateTrendViewer language={language} />
+              <Suspense fallback={<RouteSkeleton label="Loading Climate" />}>
+                <ClimateTrendViewer language={language} />
+              </Suspense>
             </ErrorBoundary>
           ) : null}
           {activeSection === "alerts" ? (
             <ErrorBoundary title="Fire and flood panel failed">
-              <FireFloodPanel language={language} />
+              <Suspense fallback={<RouteSkeleton label="Loading Hazards" />}>
+                <FireFloodPanel language={language} />
+              </Suspense>
             </ErrorBoundary>
           ) : null}
         </div>
@@ -1149,6 +1155,18 @@ const DashboardPage = ({ language }) => {
     </div>
   );
 };
+
+const WeatherPage = ({ language }) => (
+  <div className="min-h-screen bg-[#f5f7f3] p-3 sm:p-4 md:p-6">
+    <div className="mx-auto max-w-7xl">
+      <ErrorBoundary title="Weather intelligence failed">
+        <Suspense fallback={<RouteSkeleton label="Loading Weather" />}>
+          <WeatherIntelligence language={language} />
+        </Suspense>
+      </ErrorBoundary>
+    </div>
+  </div>
+);
 
 const RouteSkeleton = ({ label = "Loading" }) => (
   <div className="grid gap-3 rounded-lg border border-ministry-100 bg-white p-4 shadow-panel">
@@ -1278,6 +1296,18 @@ const Navbar = ({ language, onLanguageChange }) => {
                     {t(language, "navSimulator")}
                   </Link>
                 </li>
+          <li>
+            <Link
+              to="/weather"
+              className={`block rounded-md px-3 py-2 ${
+                location.pathname === "/weather"
+                  ? "bg-ministry-50 text-ministry-700"
+                  : "text-slate-600 hover:bg-ministry-50 hover:text-ministry-700"
+              }`}
+            >
+              {t(language, "navWeather")}
+            </Link>
+          </li>
 
           {/* "More" — click-controlled, not hover */}
           <li ref={moreRef} className="relative">
@@ -1394,6 +1424,15 @@ const Navbar = ({ language, onLanguageChange }) => {
               className="block rounded-md px-3 py-2 text-slate-600 hover:bg-ministry-50 hover:text-ministry-700"
             >
               {t(language, "navSimulator")}
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/weather"
+              onClick={closeMobileMenu}
+              className="block rounded-md px-3 py-2 text-slate-600 hover:bg-ministry-50 hover:text-ministry-700"
+            >
+              {t(language, "navWeather")}
             </Link>
           </li>
           <li>
@@ -1596,6 +1635,7 @@ export default function App() {
             <Route path="/how-to-use" element={<HowToUsePage />} />
             <Route path="/documentation" element={<DocumentationPage />} />
             <Route path="/dashboard" element={<DashboardPage language={language} />} />
+            <Route path="/weather" element={<WeatherPage language={language} />} />
             <Route path="/simulator" element={<SimulatorPage />} />
           </Routes>
         </main>
