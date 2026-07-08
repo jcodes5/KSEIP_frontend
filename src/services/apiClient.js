@@ -131,6 +131,13 @@ export function getCurrentWeather(lga = "lokoja", refresh = false) {
   return request(`/api/weather/current?lga=${encodeURIComponent(lga)}${refresh ? "&refresh=true" : ""}`);
 }
 
+export function getCurrentWeatherByCoordinates(latitude, longitude, accuracy = null, refresh = false) {
+  const accuracyParam = Number.isFinite(Number(accuracy)) ? `&accuracy=${encodeURIComponent(accuracy)}` : "";
+  return request(
+    `/api/weather/current-by-coordinates?lat=${encodeURIComponent(latitude)}&lon=${encodeURIComponent(longitude)}${accuracyParam}${refresh ? "&refresh=true" : ""}`
+  );
+}
+
 export function getWeatherForecast(lga = "lokoja", days = 7, refresh = false) {
   return request(`/api/weather/forecast?lga=${encodeURIComponent(lga)}&days=${days}${refresh ? "&refresh=true" : ""}`);
 }

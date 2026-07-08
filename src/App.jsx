@@ -18,6 +18,7 @@ import {
   X
 } from "lucide-react";
 import AQIMonitor from "./components/AQIMonitor/AQIMonitor.jsx";
+import HomeWeatherCard from "./components/HomeWeather/HomeWeatherCard.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import HealthAlertsPanel from "./components/HealthAlertsPanel/HealthAlertsPanel.jsx";
 import { getAqiHistory, getCurrentAqi, getHealthAdvisory } from "./services/apiClient.js";
@@ -194,31 +195,8 @@ const HomePage = () => (
           </div>
         </div>
 
-        <div className="rounded-lg border border-white/20 bg-white p-5 text-slate-900 shadow-2xl">
-          <div className="flex items-start gap-4 border-b border-slate-200 pb-4">
-            <img
-              alt="KSEIP official logo"
-              className="h-16 w-16 object-contain"
-              src="/KSEIP_logo_green (1).png"
-            />
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-ministry-700">Official Operations</p>
-              <h2 className="mt-1 text-xl font-black text-slate-950">Environmental situation desk</h2>
-            </div>
-          </div>
-          <div className="mt-3">
-            <StatusRow label="Primary AQI backbone" value="Open-Meteo AQ" />
-            <StatusRow label="Meteorology" value="Live forecast" />
-            <StatusRow label="Fire monitoring" value="NASA FIRMS ready" />
-            <StatusRow label="Flood screening" value="Niger-Benue index" />
-          </div>
-          <div className="mt-5 rounded-md bg-ministry-50 p-4">
-            <p className="text-xs font-black uppercase tracking-wide text-ministry-700">Public service note</p>
-            <p className="mt-2 text-sm leading-6 text-slate-700">
-              Outputs are screening indicators for planning, public advisory, and field verification workflows.
-            </p>
-          </div>
-        </div>
+        
+          <HomeWeatherCard />
       </div>
     </header>
 
