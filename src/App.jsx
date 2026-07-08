@@ -1059,7 +1059,7 @@ const DashboardPage = ({ language }) => {
           </div>
         </header>
 
-        <nav className="sticky top-[102px] z-30 rounded-lg border border-ministry-100 bg-white p-2 shadow-sm" aria-label="Dashboard sections">
+        <nav className="sticky top-[102px] z-[1200] rounded-lg border border-ministry-100 bg-white p-2 shadow-sm" aria-label="Dashboard sections">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {DASHBOARD_SECTIONS.map(({ id, label, description, icon: Icon }) => {
               const selected = activeSection === id;
@@ -1220,7 +1220,7 @@ const Navbar = ({ language, onLanguageChange }) => {
   }, []);
 
   return (
-    <nav ref={navRef} className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-md">
+    <nav ref={navRef} className="sticky top-0 z-[1000] border-b border-slate-200 bg-white/95 backdrop-blur-md">
       {/* Gov bar */}
       <div className="bg-ministry-900 px-4 py-2 text-center text-xs font-bold uppercase tracking-[0.18em] text-white/75">
          {t(language, "govBar")}
